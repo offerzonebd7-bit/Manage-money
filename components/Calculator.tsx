@@ -9,7 +9,7 @@ interface CalculatorProps {
 const Calculator: React.FC<CalculatorProps> = ({ isOpen, onClose }) => {
   const [input, setInput] = useState('');
   const [preview, setPreview] = useState('');
-  const [pos, setPos] = useState({ x: window.innerWidth - 380, y: window.innerHeight - 600 });
+  const [pos, setPos] = useState({ x: window.innerWidth - 350, y: window.innerHeight - 550 });
   const [dragging, setDragging] = useState(false);
   const dragRef = useRef({ startX: 0, startY: 0 });
 
@@ -31,8 +31,8 @@ const Calculator: React.FC<CalculatorProps> = ({ isOpen, onClose }) => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!dragging) return;
       setPos({
-        x: e.clientX - dragRef.current.startX,
-        y: e.clientY - dragRef.current.startY
+        x: Math.max(0, Math.min(window.innerWidth - 320, e.clientX - dragRef.current.startX)),
+        y: Math.max(0, Math.min(window.innerHeight - 500, e.clientY - dragRef.current.startY))
       });
     };
     const handleMouseUp = () => setDragging(false);
@@ -79,14 +79,14 @@ const Calculator: React.FC<CalculatorProps> = ({ isOpen, onClose }) => {
   return (
     <div 
       className="fixed z-[100] w-80 bg-white dark:bg-gray-800 rounded-[30px] shadow-2xl border-2 border-primary/20 overflow-hidden select-none"
-      style={{ left: pos.x, top: pos.y }}
+      style={{ left: pos.x, top: pos.y, touchAction: 'none' }}
     >
       <div 
         onMouseDown={handleDragStart}
         className="bg-primary p-4 text-white flex justify-between items-center cursor-move"
       >
         <span className="font-black text-[9px] uppercase tracking-[0.3em] flex items-center">
-          Calculator
+          Calculator (Drag Me)
         </span>
         <button onMouseDown={e => e.stopPropagation()} onClick={onClose} className="hover:bg-white/20 p-1.5 rounded-lg transition-all">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -109,22 +109,18 @@ const Calculator: React.FC<CalculatorProps> = ({ isOpen, onClose }) => {
         </button>
         <button onClick={() => handleClick('%')} className={opBtn}>%</button>
         <button onClick={() => handleClick('/')} className={opBtn}>÷</button>
-
         <button onClick={() => handleClick('7')} className={numBtn}>7</button>
         <button onClick={() => handleClick('8')} className={numBtn}>8</button>
         <button onClick={() => handleClick('9')} className={numBtn}>9</button>
         <button onClick={() => handleClick('*')} className={opBtn}>×</button>
-
         <button onClick={() => handleClick('4')} className={numBtn}>4</button>
         <button onClick={() => handleClick('5')} className={numBtn}>5</button>
         <button onClick={() => handleClick('6')} className={numBtn}>6</button>
         <button onClick={() => handleClick('-')} className={opBtn}>-</button>
-
         <button onClick={() => handleClick('1')} className={numBtn}>1</button>
         <button onClick={() => handleClick('2')} className={numBtn}>2</button>
         <button onClick={() => handleClick('3')} className={numBtn}>3</button>
         <button onClick={() => handleClick('+')} className={opBtn}>+</button>
-
         <button onClick={() => handleClick('0')} className={numBtn}>0</button>
         <button onClick={() => handleClick('00')} className={numBtn}>00</button>
         <button onClick={() => handleClick('.')} className={numBtn}>.</button>

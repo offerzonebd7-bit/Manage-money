@@ -24,8 +24,12 @@ const Auth: React.FC = () => {
   const [success, setSuccess] = useState('');
 
   const getStoredUsers = (): UserProfile[] => {
-    const users = localStorage.getItem('mm_all_users');
-    return users ? JSON.parse(users) : [];
+    try {
+      const users = localStorage.getItem('mm_all_users');
+      return users ? JSON.parse(users) : [];
+    } catch {
+      return [];
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -121,14 +125,6 @@ const Auth: React.FC = () => {
               className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm" placeholder="email@example.com" required />
           </div>
 
-          {authMode === 'signup' && (
-            <div className="space-y-1">
-              <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('mobileNumber')}</label>
-              <input type="tel" value={formData.mobile} onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-                className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm" placeholder="+8801..." required />
-            </div>
-          )}
-
           {authMode !== 'forgot' && (
             <div className="space-y-1 relative">
               <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('password')}</label>
@@ -149,9 +145,7 @@ const Auth: React.FC = () => {
                 </div>
               )}
               <div className="space-y-1 relative">
-                <div className="flex justify-between items-center ml-1">
-                  <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{t('secretCode')}</label>
-                </div>
+                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('secretCode')}</label>
                 <input type={showSecretCode ? "text" : "password"} value={formData.secretCode} onChange={(e) => setFormData({ ...formData, secretCode: e.target.value })}
                   className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm pr-12" placeholder="4-Digit Code" required />
                 <EyeIcon show={showSecretCode} toggle={() => setShowSecretCode(!showSecretCode)} />

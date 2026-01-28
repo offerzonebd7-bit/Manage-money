@@ -31,15 +31,23 @@ export const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export default function App() {
   const [user, setUser] = useState<UserProfile | null>(() => {
-    const saved = localStorage.getItem('mm_active_user');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('mm_active_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
   });
 
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
-    const userId = user?.id;
-    if (!userId) return [];
-    const saved = localStorage.getItem(`mm_tx_${userId}`);
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const userId = user?.id;
+      if (!userId) return [];
+      const saved = localStorage.getItem(`mm_tx_${userId}`);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
   });
 
   const [language, setLanguage] = useState<Language>(() => {
@@ -50,25 +58,18 @@ export default function App() {
     return (localStorage.getItem('mm_theme') as Theme) || 'light';
   });
 
-  const [locationName, setLocationName] = useState('Determining...');
+  const [locationName, setLocationName] = useState('Chittagong, Bangladesh');
   const [view, setView] = useState<'dashboard' | 'transactions' | 'reports' | 'settings' | 'profile'>('dashboard');
-
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((pos) => {
-        setLocationName("Chittagong, Bangladesh"); 
-      }, () => {
-        setLocationName(Intl.DateTimeFormat().resolvedOptions().timeZone);
-      });
-    }
-  }, []);
 
   useEffect(() => {
     if (user) {
       localStorage.setItem('mm_active_user', JSON.stringify(user));
       const savedTx = localStorage.getItem(`mm_tx_${user.id}`);
-      setTransactions(savedTx ? JSON.parse(savedTx) : []);
-      // Set primary color css variable
+      try {
+        setTransactions(savedTx ? JSON.parse(savedTx) : []);
+      } catch {
+        setTransactions([]);
+      }
       const color = user.primaryColor || '#4169E1';
       document.documentElement.style.setProperty('--primary-color', color);
     } else {
