@@ -6,16 +6,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Manage Money</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              primary: 'var(--primary-color)',
+            }
+          }
+        }
+      }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
       :root {
         --primary-color: #4169E1;
       }
-      body { font-family: 'Inter', 'Noto Sans Bengali', sans-serif; }
+      body { 
+        font-family: 'Inter', 'Noto Sans Bengali', sans-serif; 
+        transition: background-color 0.3s ease, color 0.3s ease; 
+      }
       .bg-primary { background-color: var(--primary-color) !important; }
       .text-primary { color: var(--primary-color) !important; }
       .border-primary { border-color: var(--primary-color) !important; }
       .ring-primary { --tw-ring-color: var(--primary-color) !important; }
+      
+      /* Dark mode specific backgrounds */
+      .dark body {
+        background-color: #030712 !important;
+        color: white;
+      }
       
       /* Print Styles */
       @media print {
@@ -34,9 +55,8 @@
 }
 </script>
 </head>
-  <body>
+  <body class="bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
     <div id="root"></div>
-    <!-- Entry point for the application - Relative path used for better compatibility -->
     <script type="module" src="./index.tsx"></script>
   </body>
 </html>

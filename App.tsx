@@ -1,13 +1,15 @@
 
 import React, { useState, useEffect, useMemo, createContext, useContext } from 'react';
 import { TRANSLATIONS, BRAND_INFO } from './constants';
-import { Transaction, UserProfile, Language, Theme, TransactionType, UserRole } from './types';
+import { Transaction, UserProfile, Language, Theme, TransactionType, UserRole, ThemeMode } from './types';
 import Auth from './components/Auth';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import Transactions from './components/Transactions';
 import Reports from './components/Reports';
 import Settings from './components/Settings';
+import ProductStock from './components/ProductStock';
+import PartnerContact from './components/PartnerContact';
 
 interface AppContextType {
   user: UserProfile | null;
@@ -21,8 +23,9 @@ interface AppContextType {
   language: Language;
   setLanguage: (l: Language) => void;
   theme: Theme;
-  setTheme: (t: Theme) => void;
-  view: 'dashboard' | 'transactions' | 'reports' | 'settings' | 'profile';
+  themeMode: ThemeMode;
+  setThemeMode: (m: ThemeMode) => void;
+  view: 'dashboard' | 'transactions' | 'reports' | 'settings' | 'profile' | 'products' | 'partners';
   setView: (v: any) => void;
   t: (key: string) => string;
   resetApp: (code: string) => boolean;
@@ -64,12 +67,13 @@ export default function App() {
     return (localStorage.getItem('mm_lang') as Language) || 'EN';
   });
 
-  const [theme, setTheme] = useState<Theme>(() => {
-    return (localStorage.getItem('mm_theme') as Theme) || 'light';
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
+    return (localStorage.getItem('mm_theme_mode') as ThemeMode) || 'system';
   });
 
+  const [theme, setTheme] = useState<Theme>('light');
   const [locationName, setLocationName] = useState('Chittagong, Bangladesh');
-  const [view, setView] = useState<'dashboard' | 'transactions' | 'reports' | 'settings' | 'profile'>('dashboard');
+  const [view, setView] = useState<'dashboard' | 'transactions' | 'reports' | 'settings' | 'profile' | 'products' | 'partners'>('dashboard');
 
   const setUser = (u: UserProfile | null, r: UserRole = 'ADMIN', modName: string = '') => {
     setUserState(u);
@@ -85,6 +89,37 @@ export default function App() {
       localStorage.removeItem('mm_moderator_name');
     }
   };
+
+  useEffect(() => {
+    const applyTheme = () => {
+      let isDark = false;
+      if (themeMode === 'system') {
+        isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      } else {
+        isDark = themeMode === 'dark';
+      }
+      
+      setTheme(isDark ? 'dark' : 'light');
+      
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+        document.body.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.body.classList.remove('dark');
+      }
+    };
+
+    applyTheme();
+    localStorage.setItem('mm_theme_mode', themeMode);
+
+    if (themeMode === 'system') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const listener = () => applyTheme();
+      mediaQuery.addEventListener('change', listener);
+      return () => mediaQuery.removeEventListener('change', listener);
+    }
+  }, [themeMode]);
 
   useEffect(() => {
     if (user) {
@@ -111,12 +146,6 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('mm_lang', language);
   }, [language]);
-
-  useEffect(() => {
-    localStorage.setItem('mm_theme', theme);
-    if (theme === 'dark') document.documentElement.classList.add('dark');
-    else document.documentElement.classList.remove('dark');
-  }, [theme]);
 
   const t = (key: string) => {
     const langSet = (TRANSLATIONS[language] as any) || TRANSLATIONS['EN'];
@@ -167,16 +196,16 @@ export default function App() {
     user, role, moderatorName, setUser,
     transactions, addTransaction, updateTransaction, deleteTransaction,
     language, setLanguage,
-    theme, setTheme,
+    theme, themeMode, setThemeMode,
     view, setView,
     t,
     resetApp,
     locationName
-  }), [user, role, moderatorName, transactions, language, theme, view, locationName]);
+  }), [user, role, moderatorName, transactions, language, theme, themeMode, view, locationName]);
 
   return (
     <AppContext.Provider value={contextValue}>
-      <div className={theme === 'dark' ? 'dark bg-gray-950 text-white min-h-screen' : 'bg-gray-50 text-gray-900 min-h-screen'}>
+      <div className="min-h-screen transition-colors duration-300">
         {!user ? <Auth /> : (
           <Layout>
             {view === 'dashboard' && <Dashboard />}
@@ -184,6 +213,8 @@ export default function App() {
             {view === 'reports' && <Reports />}
             {view === 'settings' && <Settings />}
             {view === 'profile' && <Settings />}
+            {view === 'products' && <ProductStock />}
+            {view === 'partners' && <PartnerContact />}
           </Layout>
         )}
       </div>

@@ -1,12 +1,29 @@
 
 export type TransactionType = 'INCOME' | 'EXPENSE' | 'DUE';
 export type UserRole = 'ADMIN' | 'MODERATOR';
+export type ThemeMode = 'light' | 'dark' | 'system';
 
 export interface Moderator {
   id: string;
   name: string;
   email: string;
   code: string;
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  code: string;
+  buyPrice: number;
+  sellPrice: number;
+  addedAt: string;
+}
+
+export interface Partner {
+  id: string;
+  name: string;
+  mobile: string;
+  description: string;
 }
 
 export interface Transaction {
@@ -32,6 +49,8 @@ export interface UserProfile {
   primaryColor?: string;
   accounts: string[];
   moderators: Moderator[];
+  products: Product[];
+  partners: Partner[];
 }
 
 export type Language = 'EN' | 'BN';

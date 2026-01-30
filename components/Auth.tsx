@@ -25,6 +25,12 @@ const Auth: React.FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  const validateEmail = (email: string) => {
+    return String(email)
+      .toLowerCase()
+      .match(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/);
+  };
+
   const getStoredUsers = (): UserProfile[] => {
     try {
       const users = localStorage.getItem('mm_all_users');
@@ -38,15 +44,25 @@ const Auth: React.FC = () => {
     e.preventDefault();
     setError('');
     setSuccess('');
+
+    if (!validateEmail(formData.email)) {
+      setError(language === 'EN' ? 'Please enter a valid email' : 'সঠিক জিমেইল বা ইমেইল ঠিকানা দিন');
+      return;
+    }
+
     const allUsers = getStoredUsers();
 
     if (authMode === 'signup') {
+      if (formData.password.length < 6) {
+        setError(language === 'EN' ? 'Password must be at least 6 characters' : 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের দিন');
+        return;
+      }
       if (formData.password !== formData.confirmPassword) {
         setError(language === 'EN' ? 'Passwords do not match' : 'পাসওয়ার্ড মিলছে না');
         return;
       }
       if (allUsers.some(u => u.email === formData.email)) {
-        setError(language === 'EN' ? 'Email already exists' : 'এই ইমেইলটি আগে ব্যবহার করা হয়েছে');
+        setError(language === 'EN' ? 'Email already registered' : 'এই ইমেইলটি আগে ব্যবহার করা হয়েছে');
         return;
       }
       
@@ -59,7 +75,9 @@ const Auth: React.FC = () => {
         secretCode: formData.secretCode,
         currency: '৳',
         accounts: [],
-        moderators: []
+        moderators: [],
+        products: [],
+        partners: []
       };
       
       allUsers.push(newUser);
@@ -71,10 +89,9 @@ const Auth: React.FC = () => {
         if (existingUser) {
           setUser(existingUser, 'ADMIN');
         } else {
-          setError(language === 'EN' ? 'Invalid Email or Password' : 'ভুল ইমেইল অথবা পাসওয়ার্ড');
+          setError(language === 'EN' ? 'Invalid Credentials' : 'ভুল ইমেইল অথবা পাসওয়ার্ড');
         }
       } else {
-        // Multi-Moderator Login Search
         let foundAdmin: UserProfile | null = null;
         let foundModName: string = '';
 
@@ -90,7 +107,7 @@ const Auth: React.FC = () => {
         if (foundAdmin) {
           setUser(foundAdmin, 'MODERATOR', foundModName);
         } else {
-          setError(language === 'EN' ? 'Invalid Moderator Email or Code' : 'ভুল মডারেটর ইমেইল অথবা কোড');
+          setError(language === 'EN' ? 'Invalid Moderator Access' : 'ভুল মডারেটর ইমেইল অথবা কোড');
         }
       }
     } else if (authMode === 'forgot') {
@@ -116,82 +133,84 @@ const Auth: React.FC = () => {
   return (
     <div className={`min-h-screen flex flex-col justify-center items-center p-6 transition-colors duration-300 ${theme === 'dark' ? 'bg-gray-950 text-white' : 'bg-blue-50 text-gray-900'}`}>
       <div className="absolute top-6 right-6">
-        <button onClick={() => setLanguage(language === 'EN' ? 'BN' : 'EN')} className="px-5 py-2.5 bg-white dark:bg-gray-800 rounded-full shadow-xl hover:scale-110 transition-all text-blue-600 font-black border dark:border-gray-700 text-xs">
+        <button onClick={() => setLanguage(language === 'EN' ? 'BN' : 'EN')} className="px-5 py-2.5 bg-white dark:bg-gray-800 rounded-lg shadow-xl hover:scale-110 transition-all text-blue-600 font-black border dark:border-gray-700 text-xs">
           {language === 'EN' ? 'BN' : 'EN'}
         </button>
       </div>
 
-      <div className="w-full max-w-sm bg-white dark:bg-gray-900 rounded-[40px] shadow-2xl overflow-hidden border-4 border-blue-600/10 animate-in fade-in zoom-in duration-300">
+      <div className="w-full max-w-sm bg-white dark:bg-gray-900 rounded-[30px] shadow-2xl overflow-hidden border-4 border-blue-600/10 animate-in fade-in zoom-in duration-300">
         <div className="p-10 text-center bg-gradient-to-br from-blue-700 to-indigo-900 text-white">
           <h1 className="text-3xl font-black tracking-tighter italic leading-none">{BRAND_INFO.name}</h1>
           <p className="mt-3 text-blue-200 text-[9px] font-black uppercase tracking-[0.4em]">{BRAND_INFO.developer}</p>
         </div>
 
         {authMode === 'login' && (
-          <div className="flex p-1 bg-gray-50 dark:bg-gray-800 border-b dark:border-gray-700">
-             <button onClick={() => setLoginRole('ADMIN')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-3xl transition-all ${loginRole === 'ADMIN' ? 'bg-white dark:bg-gray-700 shadow-md text-blue-600' : 'text-gray-400'}`}>{t('admin')}</button>
-             <button onClick={() => setLoginRole('MODERATOR')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-3xl transition-all ${loginRole === 'MODERATOR' ? 'bg-white dark:bg-gray-700 shadow-md text-blue-600' : 'text-gray-400'}`}>{t('moderator')}</button>
+          <div className="flex p-2 bg-gray-50 dark:bg-gray-800 border-b dark:border-gray-700">
+             <button onClick={() => setLoginRole('ADMIN')} className={`flex-1 py-3.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${loginRole === 'ADMIN' ? 'bg-white dark:bg-gray-700 shadow-md text-blue-600' : 'text-gray-400'}`}>{t('admin')}</button>
+             <button onClick={() => setLoginRole('MODERATOR')} className={`flex-1 py-3.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${loginRole === 'MODERATOR' ? 'bg-white dark:bg-gray-700 shadow-md text-blue-600' : 'text-gray-400'}`}>{t('moderator')}</button>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-4">
-          {error && <div className="p-4 text-[10px] font-black text-red-600 bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 uppercase tracking-widest">{error}</div>}
-          {success && <div className="p-4 text-[10px] font-black text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-200 uppercase tracking-widest">{success}</div>}
+        <form onSubmit={handleSubmit} className="p-8 space-y-6">
+          {error && <div className="p-4 text-[10px] font-black text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 uppercase tracking-widest">{error}</div>}
+          {success && <div className="p-4 text-[10px] font-black text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 uppercase tracking-widest">{success}</div>}
 
-          {authMode === 'signup' && (
+          <div className="space-y-4">
+            {authMode === 'signup' && (
+              <div className="space-y-1">
+                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Full Name</label>
+                <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-5 py-4 rounded-lg border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm" placeholder="Enter full name" required />
+              </div>
+            )}
+
             <div className="space-y-1">
-              <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Name</label>
-              <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm" placeholder="Full Name" required />
+              <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">{loginRole === 'MODERATOR' ? t('moderatorEmail') : 'Email Address'}</label>
+              <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="w-full px-5 py-4 rounded-lg border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm" placeholder="email@gmail.com" required />
             </div>
-          )}
 
-          <div className="space-y-1">
-            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">{loginRole === 'MODERATOR' ? t('moderatorEmail') : 'Email'}</label>
-            <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm" placeholder="email@example.com" required />
+            {authMode === 'login' && loginRole === 'MODERATOR' ? (
+              <div className="space-y-1 relative">
+                  <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('moderatorCode')}</label>
+                  <input type={showSecretCode ? "text" : "password"} value={formData.modCode} onChange={(e) => setFormData({ ...formData, modCode: e.target.value })}
+                    className="w-full px-5 py-4 rounded-lg border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm pr-12" placeholder="Admin Provided Code" required />
+                  <EyeIcon show={showSecretCode} toggle={() => setShowSecretCode(!showSecretCode)} />
+              </div>
+            ) : authMode !== 'forgot' && (
+              <div className="space-y-1 relative">
+                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('password')}</label>
+                <input type={showPassword ? "text" : "password"} value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="w-full px-5 py-4 rounded-lg border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm pr-12" placeholder="••••••••" required />
+                <EyeIcon show={showPassword} toggle={() => setShowPassword(!showPassword)} />
+              </div>
+            )}
+
+            {(authMode === 'signup' || authMode === 'forgot') && (
+              <>
+                {authMode === 'signup' && (
+                  <div className="space-y-1 relative">
+                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('confirmPassword')}</label>
+                    <input type={showConfirmPassword ? "text" : "password"} value={formData.confirmPassword} onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                      className="w-full px-5 py-4 rounded-lg border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm pr-12" placeholder="••••••••" required />
+                    <EyeIcon show={showConfirmPassword} toggle={() => setShowConfirmPassword(!showConfirmPassword)} />
+                  </div>
+                )}
+                <div className="space-y-1 relative">
+                  <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('secretCode')}</label>
+                  <input type={showSecretCode ? "text" : "password"} value={formData.secretCode} onChange={(e) => setFormData({ ...formData, secretCode: e.target.value })}
+                    className="w-full px-5 py-4 rounded-lg border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm pr-12" placeholder="4-Digit PIN" required />
+                  <EyeIcon show={showSecretCode} toggle={() => setShowSecretCode(!showSecretCode)} />
+                </div>
+              </>
+            )}
           </div>
 
-          {authMode === 'login' && loginRole === 'MODERATOR' ? (
-             <div className="space-y-1 relative">
-                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('moderatorCode')}</label>
-                <input type={showSecretCode ? "text" : "password"} value={formData.modCode} onChange={(e) => setFormData({ ...formData, modCode: e.target.value })}
-                  className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm pr-12" placeholder="User Code" required />
-                <EyeIcon show={showSecretCode} toggle={() => setShowSecretCode(!showSecretCode)} />
-             </div>
-          ) : authMode !== 'forgot' && (
-            <div className="space-y-1 relative">
-              <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('password')}</label>
-              <input type={showPassword ? "text" : "password"} value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm pr-12" placeholder="••••••••" required />
-              <EyeIcon show={showPassword} toggle={() => setShowPassword(!showPassword)} />
-            </div>
-          )}
-
-          {(authMode === 'signup' || authMode === 'forgot') && (
-            <>
-              {authMode === 'signup' && (
-                <div className="space-y-1 relative">
-                  <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('confirmPassword')}</label>
-                  <input type={showConfirmPassword ? "text" : "password"} value={formData.confirmPassword} onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                    className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm pr-12" placeholder="••••••••" required />
-                  <EyeIcon show={showConfirmPassword} toggle={() => setShowConfirmPassword(!showConfirmPassword)} />
-                </div>
-              )}
-              <div className="space-y-1 relative">
-                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('secretCode')}</label>
-                <input type={showSecretCode ? "text" : "password"} value={formData.secretCode} onChange={(e) => setFormData({ ...formData, secretCode: e.target.value })}
-                  className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm pr-12" placeholder="4-Digit Code" required />
-                <EyeIcon show={showSecretCode} toggle={() => setShowSecretCode(!showSecretCode)} />
-              </div>
-            </>
-          )}
-
-          <button type="submit" className="w-full py-4.5 bg-blue-600 text-white font-black rounded-3xl shadow-xl active:scale-95 transition-all uppercase tracking-[0.3em] text-[10px] mt-2">
+          <button type="submit" className="w-full py-5 bg-blue-600 text-white font-black rounded-lg shadow-xl active:scale-95 transition-all uppercase tracking-[0.2em] text-[11px] mt-4 border-b-4 border-blue-800">
             {authMode === 'login' ? t('login') : authMode === 'signup' ? t('signup') : t('resetPassword')}
           </button>
 
-          <div className="text-center pt-4 space-y-3">
+          <div className="text-center pt-4 space-y-4">
              {authMode === 'login' && loginRole === 'ADMIN' && (
                <button type="button" onClick={() => setAuthMode('forgot')} className="text-[9px] font-black text-rose-500 uppercase tracking-widest hover:underline block w-full">
                  {t('forgotPassword')}
@@ -200,7 +219,7 @@ const Auth: React.FC = () => {
              
              {loginRole === 'ADMIN' && (
                <button type="button" onClick={() => { setAuthMode(authMode === 'login' ? 'signup' : 'login'); setError(''); setSuccess(''); }} className="text-[10px] font-black text-gray-500 hover:text-blue-600 transition-colors uppercase tracking-[0.2em]">
-                 {authMode === 'login' ? (language === 'EN' ? "New? Sign Up" : "নতুন? একাউন্ট খুলুন") : (language === 'EN' ? t('backToLogin') : t('backToLogin'))}
+                 {authMode === 'login' ? (language === 'EN' ? "Need Account? Register" : "নতুন? একাউন্ট খুলুন") : (language === 'EN' ? t('backToLogin') : t('backToLogin'))}
                </button>
              )}
           </div>
