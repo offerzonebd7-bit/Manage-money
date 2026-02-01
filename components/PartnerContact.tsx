@@ -4,14 +4,16 @@ import { useApp } from '../App';
 import { Partner } from '../types';
 
 const PartnerContact: React.FC = () => {
-  const { user, setUser, role, moderatorName, t, language } = useApp();
+  const { user, setUser, role, moderatorName, t, language, syncUserProfile } = useApp();
   const [formData, setFormData] = useState({ name: '', mobile: '', description: '' });
   const [searchTerm, setSearchTerm] = useState('');
   const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
 
-  const handleAdd = (e: React.FormEvent) => {
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    setIsSyncing(true);
     const newPartner: Partner = {
       id: 'PAR-' + Date.now(),
       name: formData.name,
@@ -20,42 +22,37 @@ const PartnerContact: React.FC = () => {
     };
     const updatedUser = { ...user, partners: [...(user.partners || []), newPartner] };
     setUser(updatedUser, role, moderatorName);
-    saveToStorage(updatedUser);
+    await syncUserProfile(updatedUser);
     setFormData({ name: '', mobile: '', description: '' });
+    setIsSyncing(false);
   };
 
-  const handleUpdate = (e: React.FormEvent) => {
+  const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !editingPartner) return;
-    const updatedPartners = user.partners.map(p => p.id === editingPartner.id ? editingPartner : p);
+    setIsSyncing(true);
+    const updatedPartners = (user.partners || []).map(p => p.id === editingPartner.id ? editingPartner : p);
     const updatedUser = { ...user, partners: updatedPartners };
     setUser(updatedUser, role, moderatorName);
-    saveToStorage(updatedUser);
+    await syncUserProfile(updatedUser);
     setEditingPartner(null);
+    setIsSyncing(false);
   };
 
-  const saveToStorage = (updatedUser: any) => {
-    const allUsers = JSON.parse(localStorage.getItem('mm_all_users') || '[]');
-    const userIdx = allUsers.findIndex((u: any) => u.id === updatedUser.id);
-    if (userIdx !== -1) {
-      allUsers[userIdx] = updatedUser;
-      localStorage.setItem('mm_all_users', JSON.stringify(allUsers));
-    }
-  };
-
-  const handleRemove = (id: string) => {
+  const handleRemove = async (id: string) => {
     if (role === 'MODERATOR') return alert(t('insufficientPermissions'));
     if (!user || !confirm(language === 'EN' ? 'Delete this partner?' : 'পার্টনার ডিলিট করতে চান?')) return;
-    const updatedUser = { ...user, partners: user.partners.filter(p => p.id !== id) };
+    setIsSyncing(true);
+    const updatedUser = { ...user, partners: (user.partners || []).filter(p => p.id !== id) };
     setUser(updatedUser, role, moderatorName);
-    saveToStorage(updatedUser);
+    await syncUserProfile(updatedUser);
+    setIsSyncing(false);
   };
 
   const filtered = user?.partners?.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.mobile.includes(searchTerm)) || [];
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
-      {/* Edit Partner Modal */}
       {editingPartner && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-gray-900/60 backdrop-blur-md animate-in zoom-in duration-300">
           <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-[30px] shadow-2xl overflow-hidden border-4 border-primary/10">
@@ -82,7 +79,9 @@ const PartnerContact: React.FC = () => {
              <input type="text" placeholder={t('partnerMobile')} value={formData.mobile} onChange={e => setFormData({...formData, mobile: e.target.value})} className="px-5 py-3.5 bg-gray-50 dark:bg-gray-900 border dark:border-gray-700 rounded-2xl outline-none font-bold text-xs" required />
              <input type="text" placeholder={t('partnerDesc')} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="px-5 py-3.5 bg-gray-50 dark:bg-gray-900 border dark:border-gray-700 rounded-2xl outline-none font-bold text-xs" />
           </div>
-          <button type="submit" className="w-full py-4 bg-primary text-white font-black rounded-2xl shadow-lg uppercase tracking-widest text-[10px] border-b-4 border-black/20">+ Add Partner</button>
+          <button type="submit" disabled={isSyncing} className="w-full py-4 bg-primary text-white font-black rounded-2xl shadow-lg uppercase tracking-widest text-[10px] border-b-4 border-black/20 disabled:opacity-50">
+            {isSyncing ? 'Syncing...' : '+ Add Partner'}
+          </button>
         </form>
       </section>
 

@@ -68,6 +68,7 @@ const Dashboard: React.FC = () => {
   };
 
   const currencySymbol = user?.currency || '৳';
+  const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : '?';
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-10">
@@ -120,10 +121,10 @@ const Dashboard: React.FC = () => {
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
           <div className="flex items-center gap-5">
             <div className="w-16 h-16 rounded-2xl border-2 border-primary/20 overflow-hidden bg-primary/5 dark:bg-gray-900 flex items-center justify-center shadow-inner">
-                {user?.profilePic ? <img src={user.profilePic} className="w-full h-full object-cover" /> : <div className="text-primary font-black text-2xl">{user?.name.charAt(0)}</div>}
+                {user?.profilePic ? <img src={user.profilePic} className="w-full h-full object-cover" /> : <div className="text-primary font-black text-2xl">{userInitial}</div>}
             </div>
             <div>
-              <h2 className="text-xl font-black tracking-tight dark:text-white leading-none">{user?.name}</h2>
+              <h2 className="text-xl font-black tracking-tight dark:text-white leading-none">{user?.name || 'Shop Name'}</h2>
               <p className="text-[9px] font-black uppercase tracking-widest text-primary mt-2 flex items-center gap-1">
                 <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> {locationName}
               </p>

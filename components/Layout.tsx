@@ -27,12 +27,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     { id: 'settings', label: t('settings'), icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
   ];
 
-  const displayName = role === 'MODERATOR' ? moderatorName : user?.name;
+  const displayName = role === 'MODERATOR' ? moderatorName : (user?.name || 'User');
   
-  // Find moderator profile pic if role is MODERATOR
   const currentProfilePic = role === 'MODERATOR' 
     ? user?.moderators?.find(m => m.name === moderatorName)?.profilePic || ''
     : user?.profilePic || '';
+
+  const fallbackInitial = displayName ? displayName.charAt(0).toUpperCase() : '?';
 
   const contactIcons = [
     { id: 'web', icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z', url: BRAND_INFO.website, color: '#4169E1' },
@@ -64,7 +65,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                        className={`flex items-center w-full p-4 rounded-xl border-2 transition-all group ${user?.id === u.id && role === 'ADMIN' ? 'border-primary bg-primary/5' : 'border-gray-100 dark:border-gray-700 hover:border-primary/50'}`}
                     >
                        <div className="w-12 h-12 rounded-lg bg-primary flex items-center justify-center text-white text-xl font-black mr-4 shadow-md overflow-hidden shrink-0">
-                          {u.profilePic ? <img src={u.profilePic} className="w-full h-full object-cover" /> : u.name.charAt(0).toUpperCase()}
+                          {u.profilePic ? <img src={u.profilePic} className="w-full h-full object-cover" /> : (u.name ? u.name.charAt(0).toUpperCase() : '?')}
                        </div>
                        <div className="text-left flex-1 overflow-hidden">
                           <p className="font-black text-sm truncate dark:text-white">{u.name}</p>
@@ -114,11 +115,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
           <div className="flex items-center px-4 py-3 mb-2 bg-gray-50 dark:bg-gray-800 rounded-xl border dark:border-gray-700">
             <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center text-white text-md font-black mr-3 shadow-lg overflow-hidden shrink-0">
-              {currentProfilePic ? <img src={currentProfilePic} alt="P" className="w-full h-full object-cover" /> : displayName?.charAt(0).toUpperCase()}
+              {currentProfilePic ? <img src={currentProfilePic} alt="P" className="w-full h-full object-cover" /> : fallbackInitial}
             </div>
             <div className="overflow-hidden">
               <p className="text-[10px] font-black truncate dark:text-gray-100">{displayName}</p>
-              <p className="text-[8px] font-bold text-gray-400 truncate uppercase">{role === 'MODERATOR' ? t('moderator') : user?.mobile}</p>
+              <p className="text-[8px] font-bold text-gray-400 truncate uppercase">{role === 'MODERATOR' ? t('moderator') : (user?.mobile || 'Admin')}</p>
             </div>
           </div>
           <button onClick={() => setUser(null, 'ADMIN')} className="flex items-center w-full px-5 py-2 text-[10px] font-black text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950 rounded-lg transition-all">

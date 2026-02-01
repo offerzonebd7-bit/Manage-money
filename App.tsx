@@ -11,6 +11,7 @@ import Settings from './components/Settings';
 import ProductStock from './components/ProductStock';
 import PartnerContact from './components/PartnerContact';
 import ProductSale from './components/ProductSale';
+import { supabase, hasSupabaseConfig } from './lib/supabase';
 
 interface AppContextType {
   user: UserProfile | null;
@@ -29,40 +30,20 @@ interface AppContextType {
   view: 'dashboard' | 'transactions' | 'reports' | 'settings' | 'profile' | 'products' | 'partners' | 'sale';
   setView: (v: any) => void;
   t: (key: string) => string;
-  resetApp: (code: string) => boolean;
+  resetApp: (code: string) => Promise<boolean>;
+  syncUserProfile: (updatedUser: UserProfile) => Promise<void>;
   locationName: string;
 }
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export default function App() {
-  const [user, setUserState] = useState<UserProfile | null>(() => {
-    try {
-      const saved = localStorage.getItem('mm_active_user');
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
-  });
-
-  const [role, setRole] = useState<UserRole>(() => {
-    return (localStorage.getItem('mm_active_role') as UserRole) || 'ADMIN';
-  });
-
-  const [moderatorName, setModeratorName] = useState<string>(() => {
-    return localStorage.getItem('mm_moderator_name') || '';
-  });
-
-  const [transactions, setTransactions] = useState<Transaction[]>(() => {
-    try {
-      const userId = user?.id;
-      if (!userId) return [];
-      const saved = localStorage.getItem(`mm_tx_${userId}`);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [user, setUserState] = useState<UserProfile | null>(null);
+  const [role, setRole] = useState<UserRole>('ADMIN');
+  const [moderatorName, setModeratorName] = useState<string>('');
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [language, setLanguage] = useState<Language>(() => {
     return (localStorage.getItem('mm_lang') as Language) || 'EN';
@@ -76,156 +57,184 @@ export default function App() {
   const [locationName, setLocationName] = useState('Chittagong, Bangladesh');
   const [view, setView] = useState<'dashboard' | 'transactions' | 'reports' | 'settings' | 'profile' | 'products' | 'partners' | 'sale'>('dashboard');
 
+  const fetchCloudData = async (userId: string) => {
+    if (!supabase) return;
+    try {
+      const { data: profile, error: pError } = await supabase
+        .from('users_profile')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (profile) {
+        setUserState({
+          ...profile,
+          secretCode: profile.secret_code,
+          primaryColor: profile.primary_color,
+          profilePic: profile.profile_pic,
+          moderators: profile.moderators || [],
+          products: profile.products || [],
+          partners: profile.partners || [],
+          accounts: profile.accounts || []
+        });
+      }
+
+      const { data: txs } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (txs) {
+        setTransactions(txs.map(t => ({
+          ...t,
+          userId: t.user_id,
+          createdAt: t.created_at
+        })));
+      }
+    } catch (e: any) {
+      console.error("Fetch Error:", e);
+    }
+  };
+
+  useEffect(() => {
+    const initApp = async () => {
+      try {
+        if (!hasSupabaseConfig) {
+          setError("Supabase URL or Key is missing in environment variables.");
+          setLoading(false);
+          return;
+        }
+
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          await fetchCloudData(session.user.id);
+        }
+        setLoading(false);
+      } catch (err: any) {
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    initApp();
+
+    if (supabase) {
+      const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (session?.user) {
+          await fetchCloudData(session.user.id);
+        } else {
+          setUserState(null);
+          setTransactions([]);
+        }
+        setLoading(false);
+      });
+      return () => authListener.subscription.unsubscribe();
+    }
+  }, []);
+
+  const syncUserProfile = async (updatedUser: UserProfile) => {
+    if (!supabase) return;
+    const dbData = {
+      name: updatedUser.name,
+      mobile: updatedUser.mobile,
+      currency: updatedUser.currency,
+      secret_code: updatedUser.secretCode,
+      primary_color: updatedUser.primaryColor,
+      profile_pic: updatedUser.profilePic,
+      moderators: updatedUser.moderators,
+      products: updatedUser.products,
+      partners: updatedUser.partners,
+      accounts: updatedUser.accounts
+    };
+    await supabase.from('users_profile').update(dbData).eq('id', updatedUser.id);
+  };
+
   const setUser = (u: UserProfile | null, r: UserRole = 'ADMIN', modName: string = '') => {
     setUserState(u);
     setRole(r);
     setModeratorName(modName);
-    if (u) {
-      localStorage.setItem('mm_active_user', JSON.stringify(u));
-      localStorage.setItem('mm_active_role', r);
-      localStorage.setItem('mm_moderator_name', modName);
-    } else {
-      localStorage.removeItem('mm_active_user');
-      localStorage.removeItem('mm_active_role');
-      localStorage.removeItem('mm_moderator_name');
-    }
   };
 
   useEffect(() => {
-    const applyTheme = () => {
-      let isDark = false;
-      if (themeMode === 'system') {
-        isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      } else {
-        isDark = themeMode === 'dark';
-      }
-      
-      setTheme(isDark ? 'dark' : 'light');
-      
-      if (isDark) {
-        document.documentElement.classList.add('dark');
-        document.body.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-        document.body.classList.remove('dark');
-      }
-    };
-
-    applyTheme();
-    localStorage.setItem('mm_theme_mode', themeMode);
-
-    if (themeMode === 'system') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      const listener = () => applyTheme();
-      mediaQuery.addEventListener('change', listener);
-      return () => mediaQuery.removeEventListener('change', listener);
-    }
+    const isDark = themeMode === 'system' 
+      ? window.matchMedia('(prefers-color-scheme: dark)').matches 
+      : themeMode === 'dark';
+    setTheme(isDark ? 'dark' : 'light');
+    document.documentElement.classList.toggle('dark', isDark);
   }, [themeMode]);
 
   useEffect(() => {
-    if (user) {
-      const savedTx = localStorage.getItem(`mm_tx_${user.id}`);
-      try {
-        setTransactions(savedTx ? JSON.parse(savedTx) : []);
-      } catch {
-        setTransactions([]);
-      }
-      const color = user.primaryColor || '#4169E1';
-      document.documentElement.style.setProperty('--primary-color', color);
-    } else {
-      setTransactions([]);
-      document.documentElement.style.setProperty('--primary-color', '#4169E1');
-    }
-  }, [user]);
+    document.documentElement.style.setProperty('--primary-color', user?.primaryColor || '#4169E1');
+  }, [user?.primaryColor]);
 
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem(`mm_tx_${user.id}`, JSON.stringify(transactions));
-    }
-  }, [transactions, user]);
+  const t = (key: string) => (TRANSLATIONS[language] as any)[key] || key;
 
-  useEffect(() => {
-    localStorage.setItem('mm_lang', language);
-  }, [language]);
-
-  const t = (key: string) => {
-    const langSet = (TRANSLATIONS[language] as any) || TRANSLATIONS['EN'];
-    return langSet[key] || key;
+  const addTransaction = async (newTx: Omit<Transaction, 'id' | 'createdAt' | 'userId'>) => {
+    if (!user || !supabase) return;
+    const { data } = await supabase.from('transactions').insert([{
+      user_id: user.id,
+      amount: newTx.amount,
+      description: newTx.description,
+      type: newTx.type,
+      category: newTx.category,
+      date: newTx.date
+    }]).select().single();
+    if (data) setTransactions(prev => [{...data, userId: data.user_id, createdAt: data.created_at}, ...prev]);
   };
 
-  const addTransaction = (newTx: Omit<Transaction, 'id' | 'createdAt' | 'userId'>) => {
-    if (!user) return;
-    const tx: Transaction = {
-      ...newTx,
-      id: Math.random().toString(36).substr(2, 9),
-      userId: user.id,
-      createdAt: new Date().toISOString(),
-    };
-    setTransactions(prev => [tx, ...prev]);
+  const updateTransaction = async (id: string, updated: Partial<Transaction>) => {
+    const { error } = await supabase.from('transactions').update(updated).eq('id', id);
+    if (!error) setTransactions(prev => prev.map(tx => tx.id === id ? { ...tx, ...updated } : tx));
   };
 
-  const updateTransaction = (id: string, updated: Partial<Transaction>) => {
-    setTransactions(prev => prev.map(tx => tx.id === id ? { ...tx, ...updated } : tx));
-  };
-
-  const deleteTransaction = (id: string) => {
-    if (role === 'MODERATOR') {
-      alert(t('insufficientPermissions'));
-      return;
-    }
-    if (confirm(language === 'EN' ? 'Are you sure?' : 'আপনি কি নিশ্চিত?')) {
-      setTransactions(prev => prev.filter(tx => tx.id !== id));
+  const deleteTransaction = async (id: string) => {
+    if (role === 'MODERATOR') return alert(t('insufficientPermissions'));
+    if (confirm(t('confirmDelete'))) {
+      const { error } = await supabase.from('transactions').delete().eq('id', id);
+      if (!error) setTransactions(prev => prev.filter(tx => tx.id !== id));
     }
   };
 
-  const resetApp = (code: string): boolean => {
-    if (role === 'MODERATOR') {
-      alert(t('insufficientPermissions'));
-      return false;
-    }
-    if (code === user?.secretCode) {
-      setTransactions([]);
-      localStorage.removeItem(`mm_tx_${user?.id}`);
-      return true;
-    } else {
-      alert(language === 'EN' ? 'Invalid Admin Secret Code!' : 'ভুল এডমিন সিক্রেট কোড!');
-      return false;
-    }
+  const resetApp = async (code: string): Promise<boolean> => {
+    if (role === 'MODERATOR' || code !== user?.secretCode) return false;
+    const { error } = await supabase.from('transactions').delete().eq('user_id', user.id);
+    if (!error) { setTransactions([]); return true; }
+    return false;
   };
 
   const contextValue = useMemo(() => ({
-    user, role, moderatorName, setUser,
-    transactions, addTransaction, updateTransaction, deleteTransaction,
-    language, setLanguage,
-    theme, themeMode, setThemeMode,
-    view, setView,
-    t,
-    resetApp,
-    locationName
-  }), [user, role, moderatorName, transactions, language, theme, themeMode, view, locationName]);
+    user, role, moderatorName, setUser, transactions, addTransaction, updateTransaction, deleteTransaction,
+    language, setLanguage, theme, themeMode, setThemeMode, view, setView, t, resetApp, syncUserProfile, locationName
+  }), [user, role, moderatorName, transactions, language, theme, themeMode, view]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-gray-950">
+        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Synchronizing System...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-rose-50 p-10 text-center">
+        <div className="w-20 h-20 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mb-6">
+           <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
+        </div>
+        <h2 className="text-2xl font-black text-rose-900 mb-2 uppercase tracking-tighter">Connection Error</h2>
+        <p className="text-rose-600 font-bold text-sm max-w-xs">{error}</p>
+        <p className="mt-6 text-[10px] font-black text-rose-400 uppercase tracking-widest">Please check your Environment Variables in Vercel/Local Settings.</p>
+      </div>
+    );
+  }
 
   return (
     <AppContext.Provider value={contextValue}>
-      <div className="min-h-screen transition-colors duration-300">
-        {!user ? <Auth /> : (
-          <Layout>
-            {view === 'dashboard' && <Dashboard />}
-            {view === 'transactions' && <Transactions />}
-            {view === 'reports' && <Reports />}
-            {view === 'settings' && <Settings />}
-            {view === 'profile' && <Settings />}
-            {view === 'products' && <ProductStock />}
-            {view === 'partners' && <PartnerContact />}
-            {view === 'sale' && <ProductSale />}
-          </Layout>
-        )}
-      </div>
+      {!user ? <Auth /> : <Layout>{React.createElement({ dashboard: Dashboard, transactions: Transactions, reports: Reports, settings: Settings, profile: Settings, products: ProductStock, partners: PartnerContact, sale: ProductSale }[view] || Dashboard)}</Layout>}
     </AppContext.Provider>
   );
 }
 
-export const useApp = () => {
-  const context = useContext(AppContext);
-  if (!context) throw new Error('useApp error');
-  return context;
-};
+export const useApp = () => useContext(AppContext)!;

@@ -4,14 +4,16 @@ import { useApp } from '../App';
 import { Product } from '../types';
 
 const ProductStock: React.FC = () => {
-  const { user, setUser, role, moderatorName, t, language } = useApp();
+  const { user, setUser, role, moderatorName, t, language, syncUserProfile } = useApp();
   const [formData, setFormData] = useState({ name: '', code: '', buyPrice: '', sellPrice: '' });
   const [searchTerm, setSearchTerm] = useState('');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
 
-  const handleAdd = (e: React.FormEvent) => {
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    setIsSyncing(true);
     const newProduct: Product = {
       id: 'P-' + Date.now(),
       name: formData.name,
@@ -22,42 +24,37 @@ const ProductStock: React.FC = () => {
     };
     const updatedUser = { ...user, products: [...(user.products || []), newProduct] };
     setUser(updatedUser, role, moderatorName);
-    saveToStorage(updatedUser);
+    await syncUserProfile(updatedUser);
     setFormData({ name: '', code: '', buyPrice: '', sellPrice: '' });
+    setIsSyncing(false);
   };
 
-  const handleUpdate = (e: React.FormEvent) => {
+  const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !editingProduct) return;
-    const updatedProducts = user.products.map(p => p.id === editingProduct.id ? editingProduct : p);
+    setIsSyncing(true);
+    const updatedProducts = (user.products || []).map(p => p.id === editingProduct.id ? editingProduct : p);
     const updatedUser = { ...user, products: updatedProducts };
     setUser(updatedUser, role, moderatorName);
-    saveToStorage(updatedUser);
+    await syncUserProfile(updatedUser);
     setEditingProduct(null);
+    setIsSyncing(false);
   };
 
-  const saveToStorage = (updatedUser: any) => {
-    const allUsers = JSON.parse(localStorage.getItem('mm_all_users') || '[]');
-    const userIdx = allUsers.findIndex((u: any) => u.id === updatedUser.id);
-    if (userIdx !== -1) {
-      allUsers[userIdx] = updatedUser;
-      localStorage.setItem('mm_all_users', JSON.stringify(allUsers));
-    }
-  };
-
-  const handleRemove = (id: string) => {
+  const handleRemove = async (id: string) => {
     if (role === 'MODERATOR') return alert(t('insufficientPermissions'));
     if (!user || !confirm(language === 'EN' ? 'Delete this product?' : 'পণ্যটি ডিলিট করতে চান?')) return;
-    const updatedUser = { ...user, products: user.products.filter(p => p.id !== id) };
+    setIsSyncing(true);
+    const updatedUser = { ...user, products: (user.products || []).filter(p => p.id !== id) };
     setUser(updatedUser, role, moderatorName);
-    saveToStorage(updatedUser);
+    await syncUserProfile(updatedUser);
+    setIsSyncing(false);
   };
 
   const filtered = user?.products?.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.code.toLowerCase().includes(searchTerm.toLowerCase())) || [];
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
-      {/* Edit Product Modal */}
       {editingProduct && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-gray-900/60 backdrop-blur-md animate-in zoom-in duration-300">
           <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-[30px] shadow-2xl overflow-hidden border-4 border-primary/10">
@@ -86,7 +83,9 @@ const ProductStock: React.FC = () => {
              <input type="number" placeholder={t('buyPrice')} value={formData.buyPrice} onChange={e => setFormData({...formData, buyPrice: e.target.value})} className="px-5 py-3.5 bg-gray-50 dark:bg-gray-900 border dark:border-gray-700 rounded-2xl outline-none font-bold text-xs" required />
              <input type="number" placeholder={t('sellPrice')} value={formData.sellPrice} onChange={e => setFormData({...formData, sellPrice: e.target.value})} className="px-5 py-3.5 bg-gray-50 dark:bg-gray-900 border dark:border-gray-700 rounded-2xl outline-none font-bold text-xs" required />
           </div>
-          <button type="submit" className="w-full py-4 bg-primary text-white font-black rounded-2xl shadow-lg uppercase tracking-widest text-[10px] border-b-4 border-black/20">+ Add Product</button>
+          <button type="submit" disabled={isSyncing} className="w-full py-4 bg-primary text-white font-black rounded-2xl shadow-lg uppercase tracking-widest text-[10px] border-b-4 border-black/20 disabled:opacity-50">
+            {isSyncing ? 'Syncing...' : '+ Add Product'}
+          </button>
         </form>
       </section>
 
