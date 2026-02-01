@@ -11,7 +11,7 @@ import Settings from './components/Settings';
 import ProductStock from './components/ProductStock';
 import PartnerContact from './components/PartnerContact';
 import ProductSale from './components/ProductSale';
-import { supabase, hasSupabaseConfig } from './lib/supabase';
+import { supabase, hasSupabaseConfig, supabaseUrl, supabaseAnonKey } from './lib/supabase';
 
 interface AppContextType {
   user: UserProfile | null;
@@ -60,7 +60,7 @@ export default function App() {
   const fetchCloudData = async (userId: string) => {
     if (!supabase) return;
     try {
-      const { data: profile, error: pError } = await supabase
+      const { data: profile } = await supabase
         .from('users_profile')
         .select('*')
         .eq('id', userId)
@@ -101,7 +101,7 @@ export default function App() {
     const initApp = async () => {
       try {
         if (!hasSupabaseConfig) {
-          setError("VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY is missing from environment.");
+          setError("Required environment variables (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY) are missing. Check Vercel Settings.");
           setLoading(false);
           return;
         }
@@ -112,7 +112,7 @@ export default function App() {
         }
         setLoading(false);
       } catch (err: any) {
-        setError(err.message);
+        setError(err.message || "An unknown error occurred during initialization.");
         setLoading(false);
       }
     };
@@ -184,12 +184,14 @@ export default function App() {
   };
 
   const updateTransaction = async (id: string, updated: Partial<Transaction>) => {
+    if (!supabase) return;
     const { error } = await supabase.from('transactions').update(updated).eq('id', id);
     if (!error) setTransactions(prev => prev.map(tx => tx.id === id ? { ...tx, ...updated } : tx));
   };
 
   const deleteTransaction = async (id: string) => {
     if (role === 'MODERATOR') return alert(t('insufficientPermissions'));
+    if (!supabase) return;
     if (confirm(t('confirmDelete'))) {
       const { error } = await supabase.from('transactions').delete().eq('id', id);
       if (!error) setTransactions(prev => prev.filter(tx => tx.id !== id));
@@ -197,7 +199,7 @@ export default function App() {
   };
 
   const resetApp = async (code: string): Promise<boolean> => {
-    if (role === 'MODERATOR' || code !== user?.secretCode) return false;
+    if (role === 'MODERATOR' || code !== user?.secretCode || !supabase) return false;
     const { error } = await supabase.from('transactions').delete().eq('user_id', user.id);
     if (!error) { setTransactions([]); return true; }
     return false;
@@ -212,38 +214,42 @@ export default function App() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-gray-950">
         <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Synchronizing System...</p>
+        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Loading System...</p>
       </div>
     );
   }
 
-  if (error) {
-    const env = (import.meta as any).env;
+  if (error || !hasSupabaseConfig) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-rose-50 p-10 text-center">
-        <div className="w-20 h-20 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mb-6">
-           <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white p-6 text-center">
+        <div className="w-20 h-20 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-6 shadow-sm">
+           <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
         </div>
-        <h2 className="text-2xl font-black text-rose-900 mb-2 uppercase tracking-tighter">Connection Error</h2>
-        <p className="text-rose-600 font-bold text-sm max-w-xs">{error}</p>
+        <h2 className="text-2xl font-black text-gray-900 mb-2 uppercase tracking-tighter">System Configuration Alert</h2>
+        <p className="text-gray-500 font-bold text-sm max-w-sm mb-8">{error || "Connection settings are missing."}</p>
         
-        <div className="mt-8 p-4 bg-white/60 rounded-2xl text-[9px] font-black text-left border border-rose-200">
-           <p className="mb-2 text-gray-400 uppercase tracking-widest">Debug Console:</p>
-           <div className="flex justify-between gap-4">
-              <span>VITE_SUPABASE_URL:</span>
-              <span className={env?.VITE_SUPABASE_URL ? "text-emerald-500" : "text-rose-500"}>
-                 {env?.VITE_SUPABASE_URL ? "FOUND ✅" : "NOT FOUND ❌"}
-              </span>
+        <div className="w-full max-w-md bg-gray-50 rounded-3xl p-6 border-2 border-dashed border-gray-200 text-left">
+           <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 text-center">Environment Checklist</h4>
+           <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                 <span className="text-xs font-bold text-gray-600">VITE_SUPABASE_URL</span>
+                 <span className={supabaseUrl ? "text-emerald-500 font-black text-[10px]" : "text-rose-500 font-black text-[10px]"}>{supabaseUrl ? "READY ✅" : "MISSING ❌"}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                 <span className="text-xs font-bold text-gray-600">VITE_SUPABASE_ANON_KEY</span>
+                 <span className={supabaseAnonKey ? "text-emerald-500 font-black text-[10px]" : "text-rose-500 font-black text-[10px]"}>{supabaseAnonKey ? "READY ✅" : "MISSING ❌"}</span>
+              </div>
            </div>
-           <div className="flex justify-between gap-4 mt-1">
-              <span>VITE_SUPABASE_ANON_KEY:</span>
-              <span className={env?.VITE_SUPABASE_ANON_KEY ? "text-emerald-500" : "text-rose-500"}>
-                 {env?.VITE_SUPABASE_ANON_KEY ? "FOUND ✅" : "NOT FOUND ❌"}
-              </span>
-           </div>
+           <p className="mt-6 text-[9px] font-bold text-gray-400 leading-relaxed">
+             1. Go to Vercel Project Settings > Environment Variables.<br/>
+             2. Add the keys above.<br/>
+             3. Trigger a manual "Redeploy" from the Deployments tab.
+           </p>
         </div>
-
-        <p className="mt-6 text-[10px] font-black text-rose-400 uppercase tracking-widest">Please ensure your Vercel settings are correct and click Redeploy.</p>
+        
+        <button onClick={() => window.location.reload()} className="mt-8 px-8 py-3 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all">
+           Retry Connection
+        </button>
       </div>
     );
   }
