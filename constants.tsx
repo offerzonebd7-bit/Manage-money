@@ -41,6 +41,7 @@ export const TRANSLATIONS = {
     reports: 'Reports',
     settings: 'Settings',
     productStock: 'Product Stock',
+    productSale: 'Product Sale',
     partners: 'Partners',
     income: 'Income',
     expense: 'Expense',
@@ -121,7 +122,14 @@ export const TRANSLATIONS = {
     exportData: 'Export Shop Data',
     importData: 'Import Shop Data',
     themeMode: 'Theme Mode',
-    auto: 'System Default'
+    auto: 'System Default',
+    customerName: 'Customer Name',
+    invoiceId: 'Invoice ID',
+    addItem: 'Add Item',
+    finishSale: 'Finish Sale',
+    qty: 'Qty',
+    price: 'Price',
+    total: 'Total'
   },
   BN: {
     dashboard: 'ড্যাশবোর্ড',
@@ -129,6 +137,7 @@ export const TRANSLATIONS = {
     reports: 'রিপোর্ট',
     settings: 'সেটিংস',
     productStock: 'প্রোডাক্ট স্টক',
+    productSale: 'পণ্য বিক্রয়',
     partners: 'পার্টনার লিস্ট',
     income: 'আয়',
     expense: 'ব্যয়',
@@ -209,6 +218,13 @@ export const TRANSLATIONS = {
     exportData: 'সব ডাটা ডাউনলোড করুন',
     importData: 'ডাটা ফাইল আপলোড করুন',
     themeMode: 'থিম মুড',
-    auto: 'ডিভাইস সেটিংস'
+    auto: 'ডিভাইস সেটিংস',
+    customerName: 'কাস্টমারের নাম',
+    invoiceId: 'ইনভয়েস আইডি',
+    addItem: 'পণ্য যোগ করুন',
+    finishSale: 'বিক্রয় সম্পন্ন করুন',
+    qty: 'পরিমাণ',
+    price: 'মূল্য',
+    total: 'মোট'
   }
 };

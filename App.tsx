@@ -10,6 +10,7 @@ import Reports from './components/Reports';
 import Settings from './components/Settings';
 import ProductStock from './components/ProductStock';
 import PartnerContact from './components/PartnerContact';
+import ProductSale from './components/ProductSale';
 
 interface AppContextType {
   user: UserProfile | null;
@@ -25,7 +26,7 @@ interface AppContextType {
   theme: Theme;
   themeMode: ThemeMode;
   setThemeMode: (m: ThemeMode) => void;
-  view: 'dashboard' | 'transactions' | 'reports' | 'settings' | 'profile' | 'products' | 'partners';
+  view: 'dashboard' | 'transactions' | 'reports' | 'settings' | 'profile' | 'products' | 'partners' | 'sale';
   setView: (v: any) => void;
   t: (key: string) => string;
   resetApp: (code: string) => boolean;
@@ -73,7 +74,7 @@ export default function App() {
 
   const [theme, setTheme] = useState<Theme>('light');
   const [locationName, setLocationName] = useState('Chittagong, Bangladesh');
-  const [view, setView] = useState<'dashboard' | 'transactions' | 'reports' | 'settings' | 'profile' | 'products' | 'partners'>('dashboard');
+  const [view, setView] = useState<'dashboard' | 'transactions' | 'reports' | 'settings' | 'profile' | 'products' | 'partners' | 'sale'>('dashboard');
 
   const setUser = (u: UserProfile | null, r: UserRole = 'ADMIN', modName: string = '') => {
     setUserState(u);
@@ -215,6 +216,7 @@ export default function App() {
             {view === 'profile' && <Settings />}
             {view === 'products' && <ProductStock />}
             {view === 'partners' && <PartnerContact />}
+            {view === 'sale' && <ProductSale />}
           </Layout>
         )}
       </div>
