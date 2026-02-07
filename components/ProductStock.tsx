@@ -32,10 +32,13 @@ const ProductStock: React.FC = () => {
       groups[key].items.push(p);
     });
 
-    return Object.values(groups).filter(g => 
-      g.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      g.code.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Enhanced filtering: search in name, code, OR color of items
+    return Object.values(groups).filter(g => {
+      const nameMatch = g.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const codeMatch = g.code.toLowerCase().includes(searchTerm.toLowerCase());
+      const colorMatch = g.items.some(item => item.color.toLowerCase().includes(searchTerm.toLowerCase()));
+      return nameMatch || codeMatch || colorMatch;
+    });
   }, [user?.products, searchTerm]);
 
   const toggleSize = (size: string) => {
@@ -232,7 +235,7 @@ const ProductStock: React.FC = () => {
       <section className="bg-white dark:bg-gray-800 p-6 sm:p-10 rounded-[40px] shadow-sm border dark:border-gray-700">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-10">
            <h3 className="text-xl font-black dark:text-white uppercase tracking-tighter">Inventory Status</h3>
-           <input type="text" placeholder="Search models..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full md:w-80 pl-14 pr-6 py-4 bg-gray-50 dark:bg-gray-900 border-2 dark:border-gray-700 rounded-3xl outline-none font-bold text-xs" />
+           <input type="text" placeholder="Search models, codes, colors..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full md:w-80 pl-14 pr-6 py-4 bg-gray-50 dark:bg-gray-900 border-2 dark:border-gray-700 rounded-3xl outline-none font-bold text-xs" />
         </div>
 
         <div className="space-y-4">

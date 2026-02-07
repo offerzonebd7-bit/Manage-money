@@ -68,16 +68,17 @@ const ProductSale: React.FC = () => {
     const invId = 'INV-' + Date.now().toString().slice(-6);
     setLastInvoiceId(invId);
     
-    // INTEGRATION WITH DASHBOARD - Ensure this is called
+    const today = new Date().toISOString().split('T')[0];
     const commonDesc = `${invId} - ${customerInfo.name || 'Walk-in'} (${items.length} items)`;
     
+    // INTEGRATION WITH DASHBOARD
     if (currentPaid > 0) {
       addTransaction({ 
         amount: currentPaid, 
         description: commonDesc, 
         type: 'INCOME', 
         category: 'Product Sales', 
-        date: new Date().toISOString().split('T')[0] 
+        date: today 
       });
     }
     
@@ -87,7 +88,7 @@ const ProductSale: React.FC = () => {
         description: `${commonDesc} (Due)`, 
         type: 'DUE', 
         category: 'Sales Dues', 
-        date: new Date().toISOString().split('T')[0] 
+        date: today 
       });
     }
 
@@ -192,8 +193,12 @@ const ProductSale: React.FC = () => {
                           <input type="number" value={item.qty === 0 ? '' : item.qty} onChange={e => updateItem(item.id, {qty: parseInt(e.target.value) || 0})} className="px-4 py-3 bg-white dark:bg-gray-800 border-2 dark:border-gray-700 rounded-xl font-bold text-xs text-center" placeholder="0" />
                        </div>
                        <div className="flex flex-col gap-1">
-                          <label className="text-[8px] font-black uppercase text-gray-400 ml-2">Sale Price</label>
-                          <input type="number" value={item.price === 0 ? '' : item.price} onChange={e => updateItem(item.id, {price: parseFloat(e.target.value) || 0})} className="px-4 py-3 bg-white dark:bg-gray-800 border-2 border-primary/20 rounded-xl font-black text-xs text-emerald-500" placeholder="0.00" />
+                          <label className="text-[8px] font-black uppercase text-gray-400 ml-2">Total Price</label>
+                          <div className="px-4 py-3 bg-primary/10 text-primary font-black text-center rounded-xl flex items-center justify-center text-xs">
+                             {currencySymbol}{(item.qty * item.price).toLocaleString()}
+                          </div>
+                          {/* Hidden editable price field for bargaining */}
+                          <input type="number" value={item.price} onChange={e => updateItem(item.id, {price: parseFloat(e.target.value) || 0})} className="mt-1 px-4 py-1 text-[8px] bg-gray-100 dark:bg-gray-800 rounded border border-dashed dark:border-gray-700" placeholder="Unit Price" />
                        </div>
                     </div>
                  </div>
@@ -212,7 +217,7 @@ const ProductSale: React.FC = () => {
            </div>
            <div className="p-8 bg-gray-50 dark:bg-gray-900 rounded-[30px] border-2 dark:border-gray-700">
               <div className="flex justify-between items-center opacity-50 mb-2 font-black uppercase text-[10px] dark:text-white">Total Bill: {currencySymbol}{totalAmount.toLocaleString()}</div>
-              <div className={`flex justify-between items-center font-black ${currentDue > 0 ? 'text-rose-600' : 'text-emerald-500 animate-pulse'}`}>
+              <div className={`flex justify-between items-center font-black ${currentDue > 0 ? 'text-rose-600' : 'text-emerald-500'}`}>
                  <span className="uppercase text-[10px]">{currentDue > 0 ? 'Remaining Due' : 'Fully Paid'}</span>
                  <span className="text-4xl tracking-tighter">{currencySymbol}{currentDue.toLocaleString()}</span>
               </div>
@@ -220,7 +225,7 @@ const ProductSale: React.FC = () => {
         </div>
 
         <button onClick={handleFinishSale} className="w-full mt-10 py-6 bg-primary text-white font-black rounded-[30px] uppercase tracking-[0.5em] text-[12px] border-b-[8px] border-black/20 shadow-2xl active:scale-95 transition-all">
-           Complete Sale & Add to Dashboard
+           Finish Sale
         </button>
       </section>
     </div>
