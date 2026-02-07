@@ -61,7 +61,15 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                  {allUsers.map(u => (
                     <button 
                        key={u.id}
-                       onClick={() => { setUser(u, 'ADMIN'); setIsSwitchModalOpen(false); }}
+                       onClick={() => {
+                          const pin = prompt(language === 'EN' ? 'Enter Secret PIN for this shop:' : 'এই শপ-এ প্রবেশ করতে সিক্রেট পিন দিন:');
+                          if (pin === u.secretCode) {
+                             setUser(u, 'ADMIN'); 
+                             setIsSwitchModalOpen(false); 
+                          } else if (pin !== null) {
+                             alert('Incorrect PIN');
+                          }
+                       }}
                        className={`flex items-center w-full p-4 rounded-xl border-2 transition-all group ${user?.id === u.id && role === 'ADMIN' ? 'border-primary bg-primary/5' : 'border-gray-100 dark:border-gray-700 hover:border-primary/50'}`}
                     >
                        <div className="w-12 h-12 rounded-lg bg-primary flex items-center justify-center text-white text-xl font-black mr-4 shadow-md overflow-hidden shrink-0">
@@ -122,7 +130,17 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               <p className="text-[8px] font-bold text-gray-400 truncate uppercase">{role === 'MODERATOR' ? t('moderator') : (user?.mobile || 'Admin')}</p>
             </div>
           </div>
-          <button onClick={() => setUser(null, 'ADMIN')} className="flex items-center w-full px-5 py-2 text-[10px] font-black text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950 rounded-lg transition-all">
+          <button 
+            onClick={() => {
+              const pin = prompt(language === 'EN' ? 'Enter Secret PIN to logout:' : 'লগআউট করতে সিক্রেট পিন দিন:');
+              if (pin === user?.secretCode) {
+                 setUser(null, 'ADMIN');
+              } else if (pin !== null) {
+                 alert('Incorrect PIN!');
+              }
+            }} 
+            className="flex items-center w-full px-5 py-2 text-[10px] font-black text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950 rounded-lg transition-all"
+          >
             <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
             {t('logout')}
           </button>

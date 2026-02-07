@@ -5,7 +5,7 @@ import { CURRENCIES, THEME_COLORS } from '../constants';
 import { Moderator } from '../types';
 
 const Settings: React.FC = () => {
-  const { user, setUser, role, moderatorName, t, syncUserProfile, resetApp, theme } = useApp();
+  const { user, setUser, role, moderatorName, t, syncUserProfile, resetApp, theme, language } = useApp();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // States
@@ -20,13 +20,31 @@ const Settings: React.FC = () => {
   const [modForm, setModForm] = useState({ name: '', email: '', code: '' });
   const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'moderators' | 'appearance' | 'system'>('profile');
 
+  // Specific Moderator View logic
   if (role === 'MODERATOR') {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className="w-20 h-20 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-6">
-          <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+      <div className="flex flex-col items-center justify-center py-20 text-center space-y-8 animate-in fade-in duration-500">
+        <div className="w-24 h-24 bg-rose-50 dark:bg-rose-950/20 text-rose-500 rounded-full flex items-center justify-center border-4 border-rose-100 dark:border-rose-900 shadow-xl">
+          <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
         </div>
-        <h2 className="text-xl font-black uppercase tracking-widest dark:text-white">{t('insufficientPermissions')}</h2>
+        <div>
+           <h2 className="text-2xl font-black uppercase tracking-widest dark:text-white">Moderator Access</h2>
+           <p className="text-gray-400 font-bold mt-2 uppercase text-[10px] tracking-widest">You have limited permissions in this view.</p>
+        </div>
+        
+        <button 
+          onClick={() => {
+            const pin = prompt(language === 'EN' ? 'Enter Admin Secret PIN to switch:' : 'এডমিন মোডে ফিরতে সিক্রেট পিন দিন:');
+            if (pin === user?.secretCode) {
+              setUser(user, 'ADMIN');
+            } else if (pin !== null) {
+              alert(language === 'EN' ? 'Incorrect PIN!' : 'ভুল পিন কোড!');
+            }
+          }}
+          className="px-10 py-5 bg-primary text-white font-black rounded-2xl shadow-2xl uppercase tracking-[0.2em] text-[11px] border-b-8 border-black/20 hover:scale-105 active:scale-95 transition-all"
+        >
+          Switch to Admin
+        </button>
       </div>
     );
   }
@@ -34,6 +52,9 @@ const Settings: React.FC = () => {
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    const pin = prompt(language === 'EN' ? 'Enter Secret PIN to save profile:' : 'প্রোফাইল সেভ করতে সিক্রেট পিন দিন:');
+    if (pin !== user.secretCode) return alert(language === 'EN' ? 'Invalid PIN!' : 'ভুল পিন!');
+    
     const updatedUser = { ...user, ...profileData };
     await syncUserProfile(updatedUser);
     alert('Profile Updated Successfully!');
@@ -100,7 +121,6 @@ const Settings: React.FC = () => {
 
   return (
     <div className="flex flex-col lg:flex-row gap-8 pb-20 max-w-6xl mx-auto animate-in slide-in-from-bottom-4 duration-500">
-      {/* Settings Navigation */}
       <aside className="lg:w-64 flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 no-scrollbar">
         {menuItems.map(item => (
           <button 
@@ -114,7 +134,6 @@ const Settings: React.FC = () => {
         ))}
       </aside>
 
-      {/* Settings Content */}
       <div className="flex-1 space-y-6">
         {activeTab === 'profile' && (
           <div className="bg-white dark:bg-gray-800 p-8 rounded-[40px] shadow-sm border dark:border-gray-700 animate-in fade-in duration-300">
@@ -130,6 +149,11 @@ const Settings: React.FC = () => {
                 <input type="file" ref={fileInputRef} onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (file && user) {
+                    // 10MB Limit Check
+                    if (file.size > 10 * 1024 * 1024) {
+                       alert(language === 'EN' ? 'Maximum image size is 10MB' : 'সর্বোচ্চ ১০ এমবি পর্যন্ত ছবি আপলোড দিতে পারবেন');
+                       return;
+                    }
                     const reader = new FileReader();
                     reader.onloadend = async () => {
                       const updatedUser = { ...user, profilePic: reader.result as string };
@@ -149,6 +173,19 @@ const Settings: React.FC = () => {
                  </select>
                  <button onClick={handleUpdateProfile} className="w-full py-4 bg-primary text-white font-black rounded-2xl shadow-xl uppercase tracking-widest text-[10px] border-b-4 border-black/20">{t('save')}</button>
               </div>
+            </div>
+            
+            <div className="pt-10 border-t-2 dark:border-gray-700 text-center">
+               <button 
+                  onClick={() => {
+                     if(confirm(language === 'EN' ? 'Switch to Moderator view?' : 'আপনি কি মডারেটর মোড চালু করতে চান?')) {
+                        setUser(user, 'MODERATOR', 'Staff Member');
+                     }
+                  }}
+                  className="px-10 py-5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black rounded-3xl shadow-xl uppercase tracking-widest text-[11px] hover:scale-105 active:scale-95 transition-all"
+               >
+                  Switch to Moderator
+               </button>
             </div>
           </div>
         )}
@@ -180,7 +217,19 @@ const Settings: React.FC = () => {
                 <div className="p-6 bg-gray-50 dark:bg-gray-900 rounded-3xl space-y-4">
                    <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Change Password</p>
                    <input type="password" value={profileData.password} onChange={e => setProfileData({...profileData, password: e.target.value})} className="w-full px-5 py-3 rounded-xl border-2 dark:bg-gray-800 outline-none font-bold text-sm" placeholder="New Password" />
-                   <button onClick={handleUpdateProfile} className="px-8 py-3 bg-gray-900 text-white dark:bg-white dark:text-gray-900 font-black rounded-xl text-[10px] uppercase tracking-widest">Update Password</button>
+                   <button 
+                    onClick={async (e) => {
+                       const pin = prompt(language === 'EN' ? 'Enter Secret PIN to change password:' : 'পাসওয়ার্ড পরিবর্তন করতে সিক্রেট পিন দিন:');
+                       if (pin === user?.secretCode) {
+                          handleUpdateProfile(e as any);
+                       } else {
+                          alert(language === 'EN' ? 'Wrong PIN!' : 'ভুল পিন!');
+                       }
+                    }} 
+                    className="px-8 py-3 bg-gray-900 text-white dark:bg-white dark:text-gray-900 font-black rounded-xl text-[10px] uppercase tracking-widest"
+                   >
+                      Update Password
+                   </button>
                 </div>
              </div>
           </div>
