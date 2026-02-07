@@ -41,7 +41,12 @@ const Auth: React.FC = () => {
         accounts: [],
         moderators: [],
         products: [],
-        partners: []
+        partners: [],
+        uiConfig: {
+          headlineSize: 1.25,
+          bodySize: 0.875,
+          btnScale: 1
+        }
       };
 
       localStorage.setItem('mm_all_users', JSON.stringify([...allUsers, newUser]));
@@ -98,13 +103,16 @@ const Auth: React.FC = () => {
           {success && <div className="p-4 text-[9px] font-black text-emerald-600 bg-emerald-50 rounded-xl border border-emerald-200 uppercase tracking-widest">{success}</div>}
           
           {authMode === 'signup' && (
-            <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-bold text-sm border-b-4 border-black/5" placeholder="Shop/Brand Name" required />
+            <input name="name" type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-bold text-sm border-b-4 border-black/5" placeholder="Shop/Brand Name" required />
           )}
           
-          <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-bold text-sm border-b-4 border-black/5" placeholder="Email Address" required />
+          {/* Email field with autocomplete for smart fill */}
+          <input name="email" type="email" autoComplete="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-bold text-sm border-b-4 border-black/5" placeholder="Email Address" required />
           
           <div className="relative">
             <input 
+              name="password"
+              autoComplete="current-password"
               type={showPassword ? "text" : "password"} 
               value={loginRole === 'MODERATOR' && authMode === 'login' ? formData.modCode : (authMode === 'recovery' ? formData.newPassword : formData.password)} 
               onChange={(e) => {
@@ -130,13 +138,15 @@ const Auth: React.FC = () => {
           </div>
 
           {authMode === 'recovery' && (
-            <input type="text" value={formData.recoveryPin} onChange={(e) => setFormData({ ...formData, recoveryPin: e.target.value })} className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-black text-sm border-b-4 border-black/5" placeholder="Secret Recovery PIN" required />
+            <input name="recovery_pin" type="text" value={formData.recoveryPin} onChange={(e) => setFormData({ ...formData, recoveryPin: e.target.value })} className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-black text-sm border-b-4 border-black/5" placeholder="Secret Recovery PIN" required />
           )}
 
           {authMode === 'signup' && (
               <>
                 <div className="relative">
                   <input 
+                    name="confirm_password"
+                    autoComplete="new-password"
                     type={showConfirmPassword ? "text" : "password"} 
                     value={formData.confirmPassword} 
                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} 
@@ -157,7 +167,7 @@ const Auth: React.FC = () => {
                   </button>
                 </div>
                 <div className="relative group">
-                  <input type="text" value={formData.secretCode} onChange={(e) => setFormData({ ...formData, secretCode: e.target.value })} className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-black text-sm border-b-4 border-blue-600/50" placeholder="Secret PIN (e.g. 1234)" required />
+                  <input name="secret_pin" type="text" value={formData.secretCode} onChange={(e) => setFormData({ ...formData, secretCode: e.target.value })} className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-black text-sm border-b-4 border-blue-600/50" placeholder="Secret PIN (e.g. 1234)" required />
                   <div className="hidden group-hover:block absolute -top-10 left-0 bg-blue-900 text-white p-2 rounded text-[8px] font-bold z-10 w-full">{t('secretTooltip')}</div>
                 </div>
               </>

@@ -22,11 +22,18 @@
     <style>
       :root {
         --primary-color: #4169E1;
+        --headline-size: 1.25rem;
+        --body-size: 0.875rem;
+        --btn-scale: 1;
       }
       body { 
         font-family: 'Inter', 'Noto Sans Bengali', sans-serif; 
         transition: background-color 0.3s ease, color 0.3s ease; 
+        font-size: var(--body-size);
       }
+      h1, h2, h3, .headline { font-size: var(--headline-size) !important; font-weight: 900; }
+      button, .btn-scale { transform: scale(var(--btn-scale)); transform-origin: center; }
+      
       .bg-primary { background-color: var(--primary-color) !important; }
       .text-primary { color: var(--primary-color) !important; }
       .border-primary { border-color: var(--primary-color) !important; }
@@ -39,7 +46,8 @@
       
       @media print {
         .no-print { display: none !important; }
-        body { background: white !important; color: black !important; }
+        body { background: white !important; color: black !important; font-size: 12pt !important; }
+        .print-statement { padding: 0 !important; border: none !important; box-shadow: none !important; }
       }
     </style>
   <script type="importmap">

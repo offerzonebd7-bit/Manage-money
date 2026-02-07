@@ -3,6 +3,12 @@ export type TransactionType = 'INCOME' | 'EXPENSE' | 'DUE';
 export type UserRole = 'ADMIN' | 'MODERATOR';
 export type ThemeMode = 'light' | 'dark' | 'system';
 
+export interface UIConfig {
+  headlineSize: number;
+  bodySize: number;
+  btnScale: number;
+}
+
 export interface Moderator {
   id: string;
   name: string;
@@ -69,7 +75,8 @@ export interface UserProfile {
   moderators: Moderator[];
   products: Product[];
   partners: Partner[];
-  sales?: SaleRecord[]; // Store detailed sales history
+  sales?: SaleRecord[];
+  uiConfig?: UIConfig;
 }
 
 export type Language = 'EN' | 'BN';

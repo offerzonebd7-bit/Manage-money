@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo, createContext, useContext } from 'react';
 import { TRANSLATIONS, BRAND_INFO } from './constants';
-import { Transaction, UserProfile, Language, Theme, TransactionType, UserRole, ThemeMode, SaleRecord } from './types';
+import { Transaction, UserProfile, Language, Theme, TransactionType, UserRole, ThemeMode, SaleRecord, UIConfig } from './types';
 import Auth from './components/Auth';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
@@ -69,6 +69,17 @@ export default function App() {
   const [theme, setTheme] = useState<Theme>('light');
   const [locationName] = useState('Chittagong, Bangladesh');
   const [view, setView] = useState<'dashboard' | 'transactions' | 'reports' | 'settings' | 'profile' | 'products' | 'partners' | 'sale' | 'todaySales'>('dashboard');
+
+  // Inject UI Styles
+  useEffect(() => {
+    if (user?.uiConfig) {
+      const { headlineSize, bodySize, btnScale } = user.uiConfig;
+      const root = document.documentElement;
+      root.style.setProperty('--headline-size', `${headlineSize}rem`);
+      root.style.setProperty('--body-size', `${bodySize}rem`);
+      root.style.setProperty('--btn-scale', `${btnScale}`);
+    }
+  }, [user?.uiConfig]);
 
   // Persistence Logic
   useEffect(() => {

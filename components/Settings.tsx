@@ -1,26 +1,35 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../App';
 import { CURRENCIES, THEME_COLORS } from '../constants';
-import { Moderator } from '../types';
+import { Moderator, UIConfig } from '../types';
 
 const Settings: React.FC = () => {
   const { user, setUser, role, moderatorName, t, syncUserProfile, resetApp, theme, language } = useApp();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // States
   const [profileData, setProfileData] = useState({ 
     name: user?.name || '', 
     mobile: user?.mobile || '', 
     currency: user?.currency || '৳',
     password: user?.password || ''
   });
+
+  const [uiConfig, setUiConfig] = useState<UIConfig>(user?.uiConfig || {
+    headlineSize: 1.25,
+    bodySize: 0.875,
+    btnScale: 1
+  });
+
   const [showPin, setShowPin] = useState(false);
   const [pinVerification, setPinVerification] = useState('');
   const [modForm, setModForm] = useState({ name: '', email: '', code: '' });
   const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'moderators' | 'appearance' | 'system'>('profile');
 
-  // Specific Moderator View logic
+  useEffect(() => {
+    if (user?.uiConfig) setUiConfig(user.uiConfig);
+  }, [user?.uiConfig]);
+
   if (role === 'MODERATOR') {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center space-y-8 animate-in fade-in duration-500">
@@ -31,7 +40,6 @@ const Settings: React.FC = () => {
            <h2 className="text-2xl font-black uppercase tracking-widest dark:text-white">Moderator Access</h2>
            <p className="text-gray-400 font-bold mt-2 uppercase text-[10px] tracking-widest">You have limited permissions in this view.</p>
         </div>
-        
         <button 
           onClick={() => {
             const pin = prompt(language === 'EN' ? 'Enter Admin Secret PIN to switch:' : 'এডমিন মোডে ফিরতে সিক্রেট পিন দিন:');
@@ -55,9 +63,13 @@ const Settings: React.FC = () => {
     const pin = prompt(language === 'EN' ? 'Enter Secret PIN to save profile:' : 'প্রোফাইল সেভ করতে সিক্রেট পিন দিন:');
     if (pin !== user.secretCode) return alert(language === 'EN' ? 'Invalid PIN!' : 'ভুল পিন!');
     
-    const updatedUser = { ...user, ...profileData };
+    const updatedUser = { ...user, ...profileData, uiConfig };
     await syncUserProfile(updatedUser);
-    alert('Profile Updated Successfully!');
+    alert('Settings Updated Successfully!');
+  };
+
+  const handleUiChange = (key: keyof UIConfig, value: number) => {
+    setUiConfig(prev => ({ ...prev, [key]: value }));
   };
 
   const handleColorChange = async (color: string) => {
@@ -149,7 +161,6 @@ const Settings: React.FC = () => {
                 <input type="file" ref={fileInputRef} onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (file && user) {
-                    // 10MB Limit Check
                     if (file.size > 10 * 1024 * 1024) {
                        alert(language === 'EN' ? 'Maximum image size is 10MB' : 'সর্বোচ্চ ১০ এমবি পর্যন্ত ছবি আপলোড দিতে পারবেন');
                        return;
@@ -171,6 +182,35 @@ const Settings: React.FC = () => {
                  <select value={profileData.currency} onChange={e => setProfileData({...profileData, currency: e.target.value})} className="w-full px-6 py-4 bg-gray-50 dark:bg-gray-700 border-2 dark:border-gray-600 rounded-2xl outline-none font-black text-xs">
                     {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.name} ({c.code})</option>)}
                  </select>
+                 
+                 {/* UI Customization Sliders */}
+                 <div className="mt-10 p-6 bg-gray-50 dark:bg-gray-900 rounded-[30px] space-y-6">
+                    <p className="text-[10px] font-black uppercase text-primary tracking-widest">Interface Scaling</p>
+                    <div className="space-y-4">
+                       <div>
+                          <label className="flex justify-between text-[9px] font-bold text-gray-400 uppercase mb-2">
+                             <span>Headline Size</span>
+                             <span>{uiConfig.headlineSize}rem</span>
+                          </label>
+                          <input type="range" min="1.25" max="2.5" step="0.05" value={uiConfig.headlineSize} onChange={e => handleUiChange('headlineSize', parseFloat(e.target.value))} className="w-full accent-primary" />
+                       </div>
+                       <div>
+                          <label className="flex justify-between text-[9px] font-bold text-gray-400 uppercase mb-2">
+                             <span>Body Text Size</span>
+                             <span>{uiConfig.bodySize}rem</span>
+                          </label>
+                          <input type="range" min="0.7" max="1.1" step="0.02" value={uiConfig.bodySize} onChange={e => handleUiChange('bodySize', parseFloat(e.target.value))} className="w-full accent-primary" />
+                       </div>
+                       <div>
+                          <label className="flex justify-between text-[9px] font-bold text-gray-400 uppercase mb-2">
+                             <span>Button Scale</span>
+                             <span>{uiConfig.btnScale}x</span>
+                          </label>
+                          <input type="range" min="0.8" max="1.2" step="0.05" value={uiConfig.btnScale} onChange={e => handleUiChange('btnScale', parseFloat(e.target.value))} className="w-full accent-primary" />
+                       </div>
+                    </div>
+                 </div>
+
                  <button onClick={handleUpdateProfile} className="w-full py-4 bg-primary text-white font-black rounded-2xl shadow-xl uppercase tracking-widest text-[10px] border-b-4 border-black/20">{t('save')}</button>
               </div>
             </div>
