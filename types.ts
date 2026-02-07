@@ -24,6 +24,18 @@ export interface Product {
   addedAt: string;
 }
 
+export interface SaleRecord {
+  id: string;
+  invoiceId: string;
+  date: string;
+  productName: string;
+  category: string;
+  qty: number;
+  sellPrice: number;
+  buyPrice: number;
+  profit: number;
+}
+
 export interface Partner {
   id: string;
   name: string;
@@ -40,7 +52,7 @@ export interface Transaction {
   category: string;
   date: string;
   createdAt: string;
-  profit?: number; // Added to track profit on sales
+  profit?: number;
 }
 
 export interface UserProfile {
@@ -57,6 +69,7 @@ export interface UserProfile {
   moderators: Moderator[];
   products: Product[];
   partners: Partner[];
+  sales?: SaleRecord[]; // Store detailed sales history
 }
 
 export type Language = 'EN' | 'BN';

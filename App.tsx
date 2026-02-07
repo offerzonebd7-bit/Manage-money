@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo, createContext, useContext } from 'react';
 import { TRANSLATIONS, BRAND_INFO } from './constants';
-import { Transaction, UserProfile, Language, Theme, TransactionType, UserRole, ThemeMode } from './types';
+import { Transaction, UserProfile, Language, Theme, TransactionType, UserRole, ThemeMode, SaleRecord } from './types';
 import Auth from './components/Auth';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
@@ -11,6 +11,7 @@ import Settings from './components/Settings';
 import ProductStock from './components/ProductStock';
 import PartnerContact from './components/PartnerContact';
 import ProductSale from './components/ProductSale';
+import TodaySales from './components/TodaySales';
 
 interface AppContextType {
   user: UserProfile | null;
@@ -26,12 +27,13 @@ interface AppContextType {
   theme: Theme;
   themeMode: ThemeMode;
   setThemeMode: (m: ThemeMode) => void;
-  view: 'dashboard' | 'transactions' | 'reports' | 'settings' | 'profile' | 'products' | 'partners' | 'sale';
+  view: 'dashboard' | 'transactions' | 'reports' | 'settings' | 'profile' | 'products' | 'partners' | 'sale' | 'todaySales';
   setView: (v: any) => void;
   t: (key: string) => string;
   resetApp: (code: string) => Promise<boolean>;
   syncUserProfile: (updatedUser: UserProfile) => Promise<void>;
   locationName: string;
+  addSaleRecord: (sales: SaleRecord[]) => Promise<void>;
 }
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -66,8 +68,7 @@ export default function App() {
 
   const [theme, setTheme] = useState<Theme>('light');
   const [locationName] = useState('Chittagong, Bangladesh');
-  const [view, setView] = useState<'dashboard' | 'transactions' | 'reports' | 'settings' | 'profile' | 'products' | 'partners' | 'sale'>('dashboard');
-  const [loading, setLoading] = useState(false);
+  const [view, setView] = useState<'dashboard' | 'transactions' | 'reports' | 'settings' | 'profile' | 'products' | 'partners' | 'sale' | 'todaySales'>('dashboard');
 
   // Persistence Logic
   useEffect(() => {
@@ -108,10 +109,18 @@ export default function App() {
 
   const syncUserProfile = async (updatedUser: UserProfile) => {
     setUserState(updatedUser);
-    // Also update in all_users list for account switcher
     const allUsers = JSON.parse(localStorage.getItem('mm_all_users') || '[]');
     const updatedAll = allUsers.map((u: any) => u.id === updatedUser.id ? updatedUser : u);
     localStorage.setItem('mm_all_users', JSON.stringify(updatedAll));
+  };
+
+  const addSaleRecord = async (newSales: SaleRecord[]) => {
+    if (!user) return;
+    const updatedUser = {
+      ...user,
+      sales: [...(user.sales || []), ...newSales]
+    };
+    await syncUserProfile(updatedUser);
   };
 
   const t = (key: string) => (TRANSLATIONS[language] as any)[key] || key;
@@ -141,17 +150,30 @@ export default function App() {
   const resetApp = async (code: string): Promise<boolean> => {
     if (role === 'MODERATOR' || code !== user?.secretCode) return false;
     setTransactions([]);
+    if (user) {
+        syncUserProfile({...user, sales: []});
+    }
     return true;
   };
 
   const contextValue = useMemo(() => ({
     user, role, moderatorName, setUser, transactions, addTransaction, updateTransaction, deleteTransaction,
-    language, setLanguage, theme, themeMode, setThemeMode, view, setView, t, resetApp, syncUserProfile, locationName
+    language, setLanguage, theme, themeMode, setThemeMode, view, setView, t, resetApp, syncUserProfile, locationName, addSaleRecord
   }), [user, role, moderatorName, transactions, language, theme, themeMode, view]);
 
   return (
     <AppContext.Provider value={contextValue}>
-      {!user ? <Auth /> : <Layout>{React.createElement({ dashboard: Dashboard, transactions: Transactions, reports: Reports, settings: Settings, profile: Settings, products: ProductStock, partners: PartnerContact, sale: ProductSale }[view] || Dashboard)}</Layout>}
+      {!user ? <Auth /> : <Layout>{React.createElement({ 
+          dashboard: Dashboard, 
+          transactions: Transactions, 
+          reports: Reports, 
+          settings: Settings, 
+          profile: Settings, 
+          products: ProductStock, 
+          partners: PartnerContact, 
+          sale: ProductSale,
+          todaySales: TodaySales
+        }[view] || Dashboard)}</Layout>}
     </AppContext.Provider>
   );
 }

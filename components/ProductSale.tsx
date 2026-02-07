@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../App';
-import { Product } from '../types';
+import { Product, SaleRecord } from '../types';
 
 interface SaleItem {
   id: string;
@@ -11,11 +11,12 @@ interface SaleItem {
   price: number;
   color: string;
   size: string;
-  buyPrice?: number; // Added to calculate profit
+  buyPrice?: number;
+  category?: string; // Track category for detailed reporting
 }
 
 const ProductSale: React.FC = () => {
-  const { user, setUser, t, language, addTransaction, syncUserProfile, role, moderatorName } = useApp();
+  const { user, setUser, t, language, addTransaction, syncUserProfile, role, moderatorName, addSaleRecord } = useApp();
   const [customerInfo, setCustomerInfo] = useState({ name: '', mobile: '' });
   const [items, setItems] = useState<SaleItem[]>([{ id: Math.random().toString(), productName: '', qty: 0, price: 0, color: '', size: '' }]);
   const [paidAmount, setPaidAmount] = useState<string>('');
@@ -68,7 +69,6 @@ const ProductSale: React.FC = () => {
   const currentDue = Math.max(0, totalAmount - currentPaid);
 
   const handleFinishSale = async () => {
-    // Basic validation
     if (items.some(i => !i.productId || Number(i.qty) <= 0)) {
        alert(language === 'EN' ? 'Please select product, variant and valid quantity' : 'দয়া করে পণ্য এবং সঠিক পরিমাণ সিলেক্ট করুন');
        return;
@@ -81,8 +81,21 @@ const ProductSale: React.FC = () => {
     const customerLabel = customerInfo.name || (language === 'EN' ? 'Walk-in' : 'নগদ কাস্টমার');
     const commonDesc = `${invId} - ${customerLabel}`;
     
-    // --- INTEGRATION WITH DASHBOARD ---
-    // Save Income with Profit metadata
+    // --- Detailed Sale Records for "Today Sales Summary" ---
+    const saleRecords: SaleRecord[] = items.map(item => ({
+      id: 'S-' + Math.random().toString(36).substr(2, 9),
+      invoiceId: invId,
+      date: today,
+      productName: item.productName,
+      category: item.category || 'General',
+      qty: item.qty,
+      sellPrice: item.price,
+      buyPrice: item.buyPrice || 0,
+      profit: (item.price - (item.buyPrice || 0)) * item.qty
+    }));
+    await addSaleRecord(saleRecords);
+
+    // --- Financial Transactions for Dashboard/Reports ---
     if (currentPaid > 0) {
       await addTransaction({ 
         amount: currentPaid, 
@@ -90,11 +103,10 @@ const ProductSale: React.FC = () => {
         type: 'INCOME', 
         category: 'Product Sales', 
         date: today,
-        profit: totalProfit // Pass profit to transaction
+        profit: totalProfit
       });
     }
     
-    // Save Due
     if (currentDue > 0) {
       await addTransaction({ 
         amount: currentDue, 
@@ -102,7 +114,7 @@ const ProductSale: React.FC = () => {
         type: 'DUE', 
         category: 'Sales Dues', 
         date: today,
-        profit: currentPaid > 0 ? 0 : totalProfit // If no payment, all profit is pending (simplified)
+        profit: currentPaid > 0 ? 0 : totalProfit
       });
     }
 
@@ -198,7 +210,7 @@ const ProductSale: React.FC = () => {
                        </select>
                        <select value={item.color} onChange={e => {
                           const v = variants.find(p => p.size === item.size && p.color === e.target.value);
-                          updateItem(item.id, {color: e.target.value, productId: v?.id, price: v?.sellPrice || 0, buyPrice: v?.buyPrice || 0});
+                          updateItem(item.id, {color: e.target.value, productId: v?.id, price: v?.sellPrice || 0, buyPrice: v?.buyPrice || 0, category: v?.category});
                        }} className="px-4 py-3 bg-white dark:bg-gray-800 border-2 dark:border-gray-700 rounded-xl font-bold text-xs" disabled={!item.size}>
                           <option value="">Color</option>
                           {availableColors.map(c => <option key={c} value={c}>{c}</option>)}

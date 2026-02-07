@@ -150,7 +150,12 @@ export const TRANSLATIONS = {
     outOfStock: 'Out of Stock',
     monthlyStatement: 'Monthly Ledger',
     statementLeaf: 'Monthly Statement Leaf',
-    grandTotal: 'Grand Total'
+    grandTotal: 'Grand Total',
+    dailyLedger: 'Daily Ledger Breakdown',
+    grandSummary: 'Grand Summary View',
+    todaySalesHistory: 'Today Sales History',
+    soldItems: 'Sold Items Today',
+    catWiseProfit: 'Category Wise Profit'
   },
   BN: {
     dashboard: 'ড্যাশবোর্ড',
@@ -255,6 +260,11 @@ export const TRANSLATIONS = {
     outOfStock: 'স্টক শেষ',
     monthlyStatement: 'মাসিক লেজার/পাতা',
     statementLeaf: 'মাসিক হিসাবের পাতা',
-    grandTotal: 'সর্বমোট'
+    grandTotal: 'সর্বমোট',
+    dailyLedger: 'প্রতিদিনের বিস্তারিত হিসাব',
+    grandSummary: 'মোট সামারি ভিউ',
+    todaySalesHistory: 'টুডে প্রোডাক্ট সেলস সামারি',
+    soldItems: 'আজকের বিক্রি হওয়া পণ্য',
+    catWiseProfit: 'ক্যাটাগরি ভিত্তিক লাভ'
   }
 };
