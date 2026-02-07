@@ -1,6 +1,6 @@
 {
-  "name": "Manage Money - Finance App",
-  "description": "A professional personal finance management app with bilingual support, daily tracking of income, expenses, and dues, and detailed reporting.",
+  "name": "Khurasan - Premium POS",
+  "description": "A professional premium POS management app for Khurasan with bilingual support, daily tracking of income, expenses, products, and detailed reporting.",
   "requestFramePermissions": [
     "geolocation"
   ]

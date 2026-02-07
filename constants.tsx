@@ -2,13 +2,13 @@
 import React from 'react';
 
 export const BRAND_INFO = {
-  name: 'Manage Money',
+  name: 'Khurasan - Premium POS',
   developer: 'Graphico Global',
-  website: 'https://www.graphicoglobal.com',
-  facebook: 'https://www.facebook.com/graphicoglobal',
-  whatsapp: 'https://wa.me/8801930277399',
-  email: 'mailto:graphicoglobal@gmail.com',
-  telegram: 'https://t.me/GraphicoGlobal',
+  website: 'https://khurasan.shop/',
+  facebook: 'https://www.facebook.com/share/1Bd9eNr9qx/?mibextid=wwXIfr',
+  whatsapp: 'https://wa.me/8801609678103',
+  email: 'mailto:khurasaanjubba@gmail.com',
+  instagram: 'https://www.instagram.com/khurasan_com_?igsh=MW9zNmM4aHBnZXlocg%3D%3D&utm_source=qr',
 };
 
 export const THEME_COLORS = [

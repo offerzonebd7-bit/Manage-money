@@ -8,6 +8,8 @@ const Auth: React.FC = () => {
   const { setUser, t, theme } = useApp();
   const [authMode, setAuthMode] = useState<'login' | 'signup' | 'recovery'>('login');
   const [loginRole, setLoginRole] = useState<UserRole>('ADMIN');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({ 
     name: '', email: '', mobile: '', password: '', confirmPassword: '', secretCode: '', modCode: '', recoveryPin: '', newPassword: '' 
   });
@@ -101,25 +103,59 @@ const Auth: React.FC = () => {
           
           <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-bold text-sm border-b-4 border-black/5" placeholder="Email Address" required />
           
-          {authMode === 'recovery' ? (
-            <>
-              <input type="text" value={formData.recoveryPin} onChange={(e) => setFormData({ ...formData, recoveryPin: e.target.value })} className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-black text-sm border-b-4 border-black/5" placeholder="Secret Recovery PIN" required />
-              <input type="password" value={formData.newPassword} onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })} className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-bold text-sm border-b-4 border-black/5" placeholder="New Password" required />
-            </>
-          ) : (
+          <div className="relative">
             <input 
-              type="password" 
-              value={loginRole === 'MODERATOR' ? formData.modCode : formData.password} 
-              onChange={(e) => loginRole === 'MODERATOR' ? setFormData({...formData, modCode: e.target.value}) : setFormData({...formData, password: e.target.value})} 
+              type={showPassword ? "text" : "password"} 
+              value={loginRole === 'MODERATOR' && authMode === 'login' ? formData.modCode : (authMode === 'recovery' ? formData.newPassword : formData.password)} 
+              onChange={(e) => {
+                if (loginRole === 'MODERATOR' && authMode === 'login') setFormData({...formData, modCode: e.target.value});
+                else if (authMode === 'recovery') setFormData({...formData, newPassword: e.target.value});
+                else setFormData({...formData, password: e.target.value});
+              }} 
               className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-bold text-sm border-b-4 border-black/5" 
-              placeholder={loginRole === 'MODERATOR' ? "Moderator User Code" : "Password"} 
+              placeholder={loginRole === 'MODERATOR' && authMode === 'login' ? "Moderator User Code" : "Password"} 
               required 
             />
+            <button 
+              type="button" 
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
+            >
+              {showPassword ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88L1.39 1.39m7.95 7.95L1.39 1.39m14.507 2.329A10.023 10.023 0 0021.543 12c-1.274 4.057-5.064 7-9.543 7-1.007 0-1.979-.147-2.893-.42M21 21l-9-9" /></svg>
+              )}
+            </button>
+          </div>
+
+          {authMode === 'recovery' && (
+            <input type="text" value={formData.recoveryPin} onChange={(e) => setFormData({ ...formData, recoveryPin: e.target.value })} className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-black text-sm border-b-4 border-black/5" placeholder="Secret Recovery PIN" required />
           )}
 
           {authMode === 'signup' && (
               <>
-                <input type="password" value={formData.confirmPassword} onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-bold text-sm border-b-4 border-black/5" placeholder="Confirm Password" required />
+                <div className="relative">
+                  <input 
+                    type={showConfirmPassword ? "text" : "password"} 
+                    value={formData.confirmPassword} 
+                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} 
+                    className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-bold text-sm border-b-4 border-black/5" 
+                    placeholder="Confirm Password" 
+                    required 
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
+                  >
+                    {showConfirmPassword ? (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88L1.39 1.39m7.95 7.95L1.39 1.39m14.507 2.329A10.023 10.023 0 0021.543 12c-1.274 4.057-5.064 7-9.543 7-1.007 0-1.979-.147-2.893-.42M21 21l-9-9" /></svg>
+                    )}
+                  </button>
+                </div>
                 <div className="relative group">
                   <input type="text" value={formData.secretCode} onChange={(e) => setFormData({ ...formData, secretCode: e.target.value })} className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-black text-sm border-b-4 border-blue-600/50" placeholder="Secret PIN (e.g. 1234)" required />
                   <div className="hidden group-hover:block absolute -top-10 left-0 bg-blue-900 text-white p-2 rounded text-[8px] font-bold z-10 w-full">{t('secretTooltip')}</div>
