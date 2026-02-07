@@ -78,7 +78,6 @@ const ProductSale: React.FC = () => {
        return;
     }
 
-    // Stock Validation
     const outOfStock = items.find(item => item.productId && item.stockLeft !== undefined && item.qty > item.stockLeft);
     if (outOfStock) {
        alert(`${language === 'EN' ? 'Insufficient stock for' : 'স্টক নেই:'} ${outOfStock.name}. ${language === 'EN' ? 'Available' : 'আছে'}: ${outOfStock.stockLeft}`);
@@ -90,11 +89,11 @@ const ProductSale: React.FC = () => {
 
     const commonDesc = `${invId} - ${customerInfo.name || 'Walk-in'} (${items.length} items)`;
     
-    // Update Transaction
+    // INTEGRATION WITH DASHBOARD (addTransaction ensures it appears in global totals)
     if (currentPaid > 0) {
       addTransaction({
         amount: currentPaid,
-        description: commonDesc + (currentDue > 0 ? " (Partial Payment)" : " (Full Paid)"),
+        description: commonDesc,
         type: 'INCOME',
         category: language === 'EN' ? 'Clothing Sales' : 'পোশাক বিক্রয়',
         date: new Date().toISOString().split('T')[0],
@@ -104,7 +103,7 @@ const ProductSale: React.FC = () => {
     if (currentDue > 0) {
       addTransaction({
         amount: currentDue,
-        description: commonDesc + (currentPaid > 0 ? " (Remaining Due)" : " (Full Due)"),
+        description: `${commonDesc} (Due)`,
         type: 'DUE',
         category: language === 'EN' ? 'Sales Dues' : 'বিক্রয় বাকি',
         date: new Date().toISOString().split('T')[0],
@@ -116,7 +115,7 @@ const ProductSale: React.FC = () => {
       const updatedProducts = (user.products || []).map(p => {
         const soldItem = items.find(item => item.productId === p.id);
         if (soldItem) {
-          return { ...p, stockQuantity: p.stockQuantity - soldItem.qty };
+          return { ...p, stockQuantity: Math.max(0, p.stockQuantity - soldItem.qty) };
         }
         return p;
       });
@@ -212,10 +211,6 @@ const ProductSale: React.FC = () => {
              <button onClick={() => window.print()} className="flex-1 py-5 bg-primary text-white font-black rounded-[25px] shadow-2xl uppercase tracking-[0.3em] text-[11px] border-b-[6px] border-black/20 active:scale-95 transition-all">Print Invoice</button>
              <button onClick={resetForm} className="flex-1 py-5 bg-gray-100 text-gray-500 font-black rounded-[25px] uppercase tracking-[0.3em] text-[11px] border-b-[6px] border-gray-300 active:scale-95 transition-all">New Transaction</button>
           </div>
-          
-          <div className="hidden print:block text-center mt-12 pt-8 border-t border-dashed">
-             <p className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-300">Thank you for shopping with us</p>
-          </div>
         </div>
       </div>
     );
@@ -265,7 +260,6 @@ const ProductSale: React.FC = () => {
                              placeholder="Type product name or code..." 
                              required 
                           />
-                          {/* Auto-Suggestion Dropdown */}
                           {suggestions.index === index && suggestions.list.length > 0 && (
                             <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border-2 dark:border-gray-700 z-[110] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                                {suggestions.list.map(p => (
