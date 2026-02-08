@@ -1,7 +1,8 @@
 {
   "name": "Khurasan - Premium POS",
-  "description": "A professional premium POS management app for Khurasan with bilingual support, daily tracking of income, expenses, products, and detailed reporting.",
+  "description": "A professional premium POS management app for Khurasan with AI business intelligence, bilingual support, and automated entry scanning.",
   "requestFramePermissions": [
+    "camera",
     "geolocation"
   ]
 }

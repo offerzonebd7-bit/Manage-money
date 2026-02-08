@@ -2,6 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../App';
 import { TransactionType, Transaction } from '../types';
+import AIConsultant from './AIConsultant';
 
 const Dashboard: React.FC = () => {
   const { transactions, t, addTransaction, updateTransaction, deleteTransaction, user, language, locationName } = useApp();
@@ -73,6 +74,8 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-10">
+      <AIConsultant />
+
       {/* Edit Transaction Modal */}
       {editingTx && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-gray-900/60 backdrop-blur-md animate-in zoom-in duration-300">
