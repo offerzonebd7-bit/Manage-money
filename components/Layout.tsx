@@ -29,11 +29,36 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   ];
 
   const socialLinks = [
-    { id: 'website', url: BRAND_INFO.website, color: 'text-blue-500', icon: 'M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9' },
-    { id: 'facebook', url: BRAND_INFO.facebook, color: 'text-indigo-600', icon: 'M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z' },
-    { id: 'whatsapp', url: BRAND_INFO.whatsapp, color: 'text-emerald-500', icon: 'M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z' },
-    { id: 'instagram', url: BRAND_INFO.instagram, color: 'text-pink-500', icon: 'M7 2h10a5 5 0 015 5v10a5 5 0 01-5 5H7a5 5 0 01-5-5V7a5 5 0 015-5zm0 2a3 3 0 00-3 3v10a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3H7zm5 4a4 4 0 110 8 4 4 0 010-8zm0 2a2 2 0 100 4 2 2 0 000-4zm4.5-1.5a1 1 0 110 2 1 1 0 010-2z' },
-    { id: 'email', url: BRAND_INFO.email, color: 'text-rose-500', icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
+    { 
+      id: 'website', 
+      url: BRAND_INFO.website, 
+      color: 'text-blue-500', 
+      svg: <path fill="currentColor" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10s10-4.477 10-10S17.523 2 12 2m0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8s8 3.589 8 8s-3.589 8-8 8m-5.5-8c0-.552.448-1 1-1h1v-1c0-.552.448-1 1-1s1 .448 1 1v1h1c.552 0 1 .448 1 1s-.448 1-1 1h-1v1c0 .552-.448 1-1 1s-1-.448-1-1v-1h-1c-.552 0-1-.448-1-1" />
+    },
+    { 
+      id: 'facebook', 
+      url: BRAND_INFO.facebook, 
+      color: 'text-indigo-600', 
+      svg: <path fill="currentColor" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89c1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" />
+    },
+    { 
+      id: 'whatsapp', 
+      url: BRAND_INFO.whatsapp, 
+      color: 'text-emerald-500', 
+      svg: <path fill="currentColor" d="M12.011 2C6.5 2 2 6.5 2 12.01c0 1.91.53 3.69 1.45 5.22L2 22l4.95-1.45c1.47.82 3.16 1.28 4.95 1.28c5.51 0 10.01-4.5 10.01-10.01c0-2.67-1.04-5.18-2.93-7.07C17.09 2.85 14.58 1.82 12.01 2zm0 2c2.14 0 4.15.84 5.66 2.34c1.51 1.5 2.34 3.52 2.34 5.67c0 4.41-3.59 8.01-8.01 8.01c-1.57 0-3.08-.46-4.37-1.32l-.31-.21l-2.69.79l.8-2.62l-.23-.37a8.03 8.03 0 0 1-1.21-4.28c0-4.42 3.59-8.01 8.01-8.01z" />
+    },
+    { 
+      id: 'instagram', 
+      url: BRAND_INFO.instagram, 
+      color: 'text-pink-500', 
+      svg: <path fill="currentColor" d="M12 2c-2.717 0-3.056.01-4.122.06c-1.065.05-1.79.217-2.428.465c-.66.255-1.22.597-1.777 1.154c-.557.558-.899 1.118-1.154 1.777c-.247.637-.415 1.363-.465 2.428C2.01 8.944 2 9.283 2 12c0 2.717.01 3.056.06 4.122c.05 1.065.217 1.79.465 2.428c.254.66.596 1.22 1.154 1.777c.558.557 1.117.899 1.777 1.154c.638.247 1.362.415 2.428.465c1.066.05 1.405.06 4.122.06s3.056-.01 4.122-.06c1.065-.05 1.79-.217 2.428-.465c.66-.255 1.22-.597 1.777-1.154c.557-.558.899-1.118 1.154-1.777c.247-.637.415-1.363.465-2.428c.05-1.066.06-1.405.06-4.122s-.01-3.056-.06-4.122c-.05-1.065-.217-1.79-.465-2.428a4.883 4.883 0 0 0-1.154-1.777a4.885 4.885 0 0 0-1.777-1.154c-.637-.248-1.363-.415-2.428-.465C15.056 2.01 14.717 2 12 2zm0 2.163c2.67 0 2.987.01 4.042.059c.976.045 1.505.207 1.858.344c.467.182.8.398 1.15.748c.35.35.566.683.748 1.15c.137.353.3.882.344 1.857c.048 1.055.058 1.371.058 4.042s-.01 2.987-.058 4.042c-.045.975-.207 1.504-.344 1.857c-.182.466-.399.8-.748 1.15c-.35.35-.683.566-1.15.748c-.353.137-.882.3-1.857.344c-1.055.048-1.371.058-4.042.058s-2.987-.01-4.042-.058c-.975-.045-1.504-.207-1.857-.344a3.029 3.029 0 0 1-1.15-.748a3.033 3.033 0 0 1-.748-1.15c-.137-.353-.3-.882-.344-1.857c-.049-1.055-.059-1.371-.059-4.042s.01-2.987.059-4.042c.045-.975.207-1.504.344-1.857c.182-.466.399-.8.748-1.15c.35-.35.683-.566 1.15-.748c.353-.137.882-.3 1.857-.344c1.055-.048 1.371-.059 4.042-.059zM12 6.865A5.135 5.135 0 1 0 17.135 12A5.135 5.135 0 0 0 12 6.865zm0 8.108A2.973 2.973 0 1 1 14.973 12A2.973 2.973 0 0 1 12 14.973zm4.846-9.157a1.2 1.2 0 1 0 1.2 1.2a1.2 1.2 0 0 0-1.2-1.2z" />
+    },
+    { 
+      id: 'email', 
+      url: BRAND_INFO.email, 
+      color: 'text-rose-500', 
+      svg: <path fill="currentColor" d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5l-8-5h16zm0 12H4V8l8 5l8-5v10z" />
+    },
   ];
 
   const displayName = role === 'MODERATOR' ? moderatorName : (user?.name || 'User');
@@ -72,7 +97,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <div className="flex justify-center items-center gap-3 mb-4 py-2 bg-gray-50 dark:bg-gray-800/50 rounded-2xl">
             {socialLinks.map(link => (
               <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer" className={`p-2 rounded-lg bg-white dark:bg-gray-800 shadow-sm hover:scale-110 active:scale-95 transition-all ${link.color}`}>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d={link.icon} /></svg>
+                <svg className="w-5 h-5" viewBox="0 0 24 24">{link.svg}</svg>
               </a>
             ))}
           </div>
@@ -133,7 +158,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   rel="noopener noreferrer" 
                   className={`p-3 rounded-2xl bg-white dark:bg-gray-800 shadow-md hover:shadow-xl hover:-translate-y-1 active:translate-y-0 transition-all ${link.color} border dark:border-gray-700`}
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d={link.icon} /></svg>
+                  <svg className="w-6 h-6" viewBox="0 0 24 24">{link.svg}</svg>
                 </a>
               ))}
            </div>
