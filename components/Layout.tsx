@@ -28,6 +28,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     { id: 'settings', label: t('settings'), icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
   ];
 
+  const socialLinks = [
+    { id: 'website', url: BRAND_INFO.website, color: 'text-blue-500', icon: 'M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9' },
+    { id: 'facebook', url: BRAND_INFO.facebook, color: 'text-indigo-600', icon: 'M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z' },
+    { id: 'whatsapp', url: BRAND_INFO.whatsapp, color: 'text-emerald-500', icon: 'M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z' },
+    { id: 'instagram', url: BRAND_INFO.instagram, color: 'text-pink-500', icon: 'M7 2h10a5 5 0 015 5v10a5 5 0 01-5 5H7a5 5 0 01-5-5V7a5 5 0 015-5zm0 2a3 3 0 00-3 3v10a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3H7zm5 4a4 4 0 110 8 4 4 0 010-8zm0 2a2 2 0 100 4 2 2 0 000-4zm4.5-1.5a1 1 0 110 2 1 1 0 010-2z' },
+    { id: 'email', url: BRAND_INFO.email, color: 'text-rose-500', icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
+  ];
+
   const displayName = role === 'MODERATOR' ? moderatorName : (user?.name || 'User');
   
   const currentProfilePic = role === 'MODERATOR' 
@@ -47,7 +55,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
-        <nav className="mt-6 px-4 space-y-2 overflow-y-auto h-[calc(100vh-280px)]">
+        <nav className="mt-6 px-4 space-y-2 overflow-y-auto h-[calc(100vh-320px)] no-scrollbar">
           {navItems.map((item) => (
             <button 
               key={item.id} 
@@ -59,7 +67,15 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </button>
           ))}
         </nav>
-        <div className="absolute bottom-0 w-full p-4 border-t dark:border-gray-800 bg-white dark:bg-gray-900">
+
+        <div className="absolute bottom-0 w-full bg-white dark:bg-gray-900 border-t dark:border-gray-800 p-4">
+          <div className="flex justify-center items-center gap-3 mb-4 py-2 bg-gray-50 dark:bg-gray-800/50 rounded-2xl">
+            {socialLinks.map(link => (
+              <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer" className={`p-2 rounded-lg bg-white dark:bg-gray-800 shadow-sm hover:scale-110 active:scale-95 transition-all ${link.color}`}>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d={link.icon} /></svg>
+              </a>
+            ))}
+          </div>
           <div className="flex items-center px-4 py-3 mb-2 bg-gray-50 dark:bg-gray-800 rounded-xl border dark:border-gray-700">
             <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center text-white text-md font-black mr-3 shadow-lg overflow-hidden shrink-0">
               {currentProfilePic ? <img src={currentProfilePic} alt="P" className="w-full h-full object-cover" /> : fallbackInitial}
@@ -107,8 +123,21 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           {children}
         </div>
 
-        <footer className="w-full py-4 text-center border-t dark:border-gray-800 print:hidden bg-white/50 dark:bg-gray-900/50">
-           <p className="text-[8px] font-black uppercase tracking-[0.4em] text-gray-400">
+        <footer className="w-full py-8 text-center border-t dark:border-gray-800 print:hidden bg-white/50 dark:bg-gray-900/50 space-y-4">
+           <div className="flex justify-center items-center gap-6">
+              {socialLinks.map(link => (
+                <a 
+                  key={link.id} 
+                  href={link.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className={`p-3 rounded-2xl bg-white dark:bg-gray-800 shadow-md hover:shadow-xl hover:-translate-y-1 active:translate-y-0 transition-all ${link.color} border dark:border-gray-700`}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d={link.icon} /></svg>
+                </a>
+              ))}
+           </div>
+           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">
              Developed by <a href={BRAND_INFO.developerUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{BRAND_INFO.developer}</a>
            </p>
         </footer>
