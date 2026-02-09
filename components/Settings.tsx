@@ -127,15 +127,39 @@ const Settings: React.FC = () => {
             </div>
             
             <div className="mt-10 pt-10 border-t-2 dark:border-gray-700">
-               <h4 className="text-[10px] font-black uppercase text-amber-500 tracking-widest mb-6">Switch to Moderator Mode</h4>
+               <div className="flex items-center justify-between mb-8">
+                  <h4 className="text-[12px] font-black uppercase text-amber-500 tracking-[0.2em]">Switch To Moderator Mode</h4>
+                  <div className="w-10 h-1 bg-amber-500/20 rounded-full"></div>
+               </div>
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {user?.moderators?.map(m => (
-                    <button key={m.id} onClick={() => setUser(user, 'MODERATOR', m.name)} className="flex items-center p-4 bg-gray-50 dark:bg-gray-900 rounded-2xl hover:border-amber-500 border-2 border-transparent transition-all">
-                       <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center text-white font-black mr-4 uppercase">{m.name.charAt(0)}</div>
-                       <div className="text-left"><p className="font-black text-xs dark:text-white uppercase">{m.name}</p><p className="text-[8px] font-bold text-gray-400 uppercase">Go To Dashboard</p></div>
+                    <button 
+                      key={m.id} 
+                      onClick={() => setUser(user, 'MODERATOR', m.name)} 
+                      className="group flex items-center justify-between p-6 bg-gray-50 dark:bg-gray-950/50 rounded-[30px] border-2 border-transparent hover:border-amber-500 hover:shadow-2xl hover:shadow-amber-500/10 transition-all active:scale-95 overflow-hidden relative"
+                    >
+                       <div className="flex items-center">
+                          <div className="w-14 h-14 rounded-2xl bg-amber-500 flex items-center justify-center text-white font-black text-xl shadow-lg shrink-0 mr-5">
+                             {m.profilePic ? <img src={m.profilePic} className="w-full h-full object-cover" /> : m.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="text-left">
+                             <p className="font-black text-sm dark:text-white uppercase tracking-tighter leading-none">{m.name}</p>
+                             <p className="text-[9px] font-bold text-gray-400 uppercase mt-2">Activate Session</p>
+                          </div>
+                       </div>
+                       <div className="p-3 bg-amber-500/10 text-amber-500 rounded-xl group-hover:bg-amber-500 group-hover:text-white transition-all">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                       </div>
+                       {/* Background pulse effect for button feel */}
+                       <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-amber-500/10 transition-all"></div>
                     </button>
                   ))}
                </div>
+               {(!user?.moderators || user.moderators.length === 0) && (
+                 <div className="text-center py-10 bg-gray-50 dark:bg-gray-900 rounded-[30px] border-2 border-dashed dark:border-gray-700">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">No moderators added yet.</p>
+                 </div>
+               )}
             </div>
           </div>
         )}
@@ -189,9 +213,15 @@ const Settings: React.FC = () => {
           <div className="bg-white dark:bg-gray-800 p-8 rounded-[40px] shadow-sm border dark:border-gray-700 animate-in fade-in duration-300">
              <h3 className="text-xl font-black mb-10 dark:text-white uppercase tracking-tighter">UI Customization</h3>
              <div className="space-y-8">
-                <div className="grid grid-cols-4 sm:grid-cols-7 gap-3">
+                <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3">
                    {THEME_COLORS.map(c => (
-                      <button key={c.color} onClick={() => syncUserProfile({...user!, primaryColor: c.color})} className={`w-full aspect-square rounded-2xl border-4 transition-all ${user?.primaryColor === c.color ? 'border-primary shadow-xl scale-110' : 'border-transparent hover:scale-105'}`} style={{ backgroundColor: c.color }} />
+                      <button 
+                        key={c.color} 
+                        onClick={() => syncUserProfile({...user!, primaryColor: c.color})} 
+                        className={`w-full aspect-square rounded-2xl border-4 transition-all ${user?.primaryColor === c.color ? 'border-primary shadow-2xl scale-110 rotate-3 z-10' : 'border-transparent hover:scale-110 hover:shadow-xl'}`} 
+                        style={{ backgroundColor: c.color }} 
+                        title={c.name}
+                      />
                    ))}
                 </div>
                 <div className="space-y-6 p-8 bg-gray-50 dark:bg-gray-900 rounded-[35px]">

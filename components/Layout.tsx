@@ -89,6 +89,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 </div>
               ))}
             </div>
+            <div className="p-6 bg-gray-50 dark:bg-gray-900 border-t dark:border-gray-700">
+               <button onClick={() => { setUser(null); setIsSwitchModalOpen(false); }} className="w-full py-4 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all border-2 border-dashed border-primary flex items-center justify-center gap-3">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>
+                  Add New Account
+               </button>
+            </div>
           </div>
         </div>
       )}
