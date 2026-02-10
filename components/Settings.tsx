@@ -150,16 +150,9 @@ const Settings: React.FC = () => {
                        <div className="p-3 bg-amber-500/10 text-amber-500 rounded-xl group-hover:bg-amber-500 group-hover:text-white transition-all">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                        </div>
-                       {/* Background pulse effect for button feel */}
-                       <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-amber-500/10 transition-all"></div>
                     </button>
                   ))}
                </div>
-               {(!user?.moderators || user.moderators.length === 0) && (
-                 <div className="text-center py-10 bg-gray-50 dark:bg-gray-900 rounded-[30px] border-2 border-dashed dark:border-gray-700">
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">No moderators added yet.</p>
-                 </div>
-               )}
             </div>
           </div>
         )}

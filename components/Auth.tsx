@@ -9,9 +9,8 @@ const Auth: React.FC = () => {
   const [authMode, setAuthMode] = useState<'login' | 'signup' | 'recovery'>('login');
   const [recoveryStep, setRecoveryStep] = useState<1 | 2>(1);
   const [loginRole, setLoginRole] = useState<UserRole>('ADMIN');
-  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({ 
-    name: '', email: '', mobile: '', password: '', confirmPassword: '', secretCode: '', modCode: '', recoveryPin: '', newPassword: '' 
+    name: '', email: '', mobile: '', password: '', confirmPassword: '', secretCode: '', modCode: '', recoveryPin: '', newPassword: '', confirmNewPassword: ''
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -26,6 +25,10 @@ const Auth: React.FC = () => {
     if (authMode === 'signup') {
       if (formData.password !== formData.confirmPassword) {
         setError(language === 'EN' ? 'Passwords do not match' : 'পাসওয়ার্ড মিলেনি');
+        return;
+      }
+      if (allUsers.some(u => u.email === formData.email.toLowerCase())) {
+        setError(language === 'EN' ? 'Email already registered' : 'এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট খোলা হয়েছে');
         return;
       }
       const newUser: UserProfile = {
@@ -43,7 +46,8 @@ const Auth: React.FC = () => {
         partners: [],
         uiConfig: { headlineSize: 1.25, bodySize: 0.875, btnScale: 1 }
       };
-      localStorage.setItem('mm_all_users', JSON.stringify([...allUsers, newUser]));
+      const updatedUsers = [...allUsers, newUser];
+      localStorage.setItem('mm_all_users', JSON.stringify(updatedUsers));
       setUser(newUser, 'ADMIN');
     } else if (authMode === 'recovery') {
       if (recoveryStep === 1) {
@@ -55,25 +59,33 @@ const Auth: React.FC = () => {
           setError(t('recoveryError'));
         }
       } else {
+        if (formData.newPassword !== formData.confirmNewPassword) {
+          setError(language === 'EN' ? 'Passwords do not match' : 'পাসওয়ার্ড মিলেনি');
+          return;
+        }
         const userIdx = allUsers.findIndex(u => u.email === formData.email.toLowerCase());
         if (userIdx !== -1) {
           allUsers[userIdx].password = formData.newPassword;
           localStorage.setItem('mm_all_users', JSON.stringify(allUsers));
           setSuccess(t('recoverySuccess'));
-          setTimeout(() => { setAuthMode('login'); setRecoveryStep(1); }, 2000);
+          setTimeout(() => { 
+            setAuthMode('login'); 
+            setRecoveryStep(1);
+            setFormData({...formData, email: '', recoveryPin: '', newPassword: '', confirmNewPassword: ''});
+          }, 2000);
         }
       }
     } else {
       if (loginRole === 'ADMIN') {
         const found = allUsers.find(u => u.email === formData.email.toLowerCase() && u.password === formData.password);
         if (found) setUser(found, 'ADMIN');
-        else setError(language === 'EN' ? 'Invalid Credentials' : 'ভুল ইমেইল বা পাসওয়ার্ড');
+        else setError(language === 'EN' ? 'Invalid Email or Password' : 'ভুল ইমেইল বা পাসওয়ার্ড');
       } else {
         const shop = allUsers.find(u => u.moderators?.some(m => m.email === formData.email.toLowerCase() && m.code === formData.modCode));
         if (shop) {
           const mod = shop.moderators.find(m => m.email === formData.email.toLowerCase());
           setUser(shop, 'MODERATOR', mod?.name || 'Moderator');
-        } else setError(t('recoveryError'));
+        } else setError(language === 'EN' ? 'Invalid Moderator Credentials' : 'ভুল মডারেটর তথ্য');
       }
     }
   };
@@ -106,21 +118,25 @@ const Auth: React.FC = () => {
           <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-bold text-sm border-b-4 border-black/5" placeholder="Email Address" required />
           
           {authMode === 'login' && (
-            <input type="password" value={loginRole === 'MODERATOR' ? formData.modCode : formData.password} onChange={(e) => loginRole === 'MODERATOR' ? setFormData({...formData, modCode: e.target.value}) : setFormData({...formData, password: e.target.value})} className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-bold text-sm border-b-4 border-black/5" placeholder={loginRole === 'MODERATOR' ? "Moderator Code" : "Password"} required />
+            <input type="password" value={loginRole === 'MODERATOR' ? formData.modCode : formData.password} onChange={(e) => loginRole === 'MODERATOR' ? setFormData({...formData, modCode: e.target.value}) : setFormData({...formData, password: e.target.value})} className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-bold text-sm border-b-4 border-black/5" placeholder={loginRole === 'MODERATOR' ? "Moderator User Code" : "Password"} required />
           )}
 
           {authMode === 'recovery' && recoveryStep === 1 && (
-            <input type="text" value={formData.recoveryPin} onChange={(e) => setFormData({ ...formData, recoveryPin: e.target.value })} className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-black text-sm border-b-4 border-blue-600/30" placeholder="Enter Secret PIN" required />
+            <input type="text" value={formData.recoveryPin} onChange={(e) => setFormData({ ...formData, recoveryPin: e.target.value })} className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-black text-sm border-b-4 border-blue-600/30 text-center tracking-[0.5em]" placeholder="4-Digit PIN" maxLength={4} required />
           )}
 
           {authMode === 'recovery' && recoveryStep === 2 && (
-            <input type="password" value={formData.newPassword} onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })} className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-bold text-sm border-b-4 border-emerald-600/30" placeholder="Enter New Password" required />
+            <>
+              <input type="password" value={formData.newPassword} onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })} className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-bold text-sm border-b-4 border-emerald-600/30" placeholder="New Password" required />
+              <input type="password" value={formData.confirmNewPassword} onChange={(e) => setFormData({ ...formData, confirmNewPassword: e.target.value })} className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-bold text-sm border-b-4 border-emerald-600/30" placeholder="Confirm New Password" required />
+            </>
           )}
 
           {authMode === 'signup' && (
             <>
               <input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-bold text-sm border-b-4 border-black/5" placeholder="Password" required />
-              <input type="text" value={formData.secretCode} onChange={(e) => setFormData({ ...formData, secretCode: e.target.value })} className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-black text-sm border-b-4 border-blue-600/50" placeholder="Secret PIN (e.g. 1234)" required />
+              <input type="password" value={formData.confirmPassword} onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-bold text-sm border-b-4 border-black/5" placeholder="Confirm Password" required />
+              <input type="text" value={formData.secretCode} onChange={(e) => setFormData({ ...formData, secretCode: e.target.value })} className="w-full px-5 py-4 rounded-xl border-2 dark:bg-gray-800 outline-none font-black text-sm border-b-4 border-blue-600/50 text-center" placeholder="Recovery PIN (4 Digits)" maxLength={4} required />
             </>
           )}
 
@@ -135,7 +151,7 @@ const Auth: React.FC = () => {
                 <button type="button" onClick={() => { setAuthMode('recovery'); setRecoveryStep(1); }} className="text-[10px] font-black text-rose-400 uppercase tracking-widest hover:text-rose-600 transition-colors">{t('forgotPassword')}</button>
               </>
             ) : (
-              <button type="button" onClick={() => setAuthMode('login')} className="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-blue-600 transition-colors">Back to Login</button>
+              <button type="button" onClick={() => { setAuthMode('login'); setRecoveryStep(1); }} className="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-blue-600 transition-colors">Back to Login</button>
             )}
           </div>
         </form>
